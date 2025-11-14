@@ -84,7 +84,7 @@ function LoginPage() {
 
       if (error.response) {
         if (error.response.status === 429) {
-          setErrorMsg(error.response.data.message || 'Demasiados intentos. Por favor, espere 15 minutos.');
+          setErrorMsg(error.response.data.message || 'Demasiados intentos. Por favor, espere 10 minutos.');
         } else if (error.response.status === 401) {
           setErrorMsg(error.response.data.message || 'Credenciales incorrectas');
         } else if (error.response.status === 400) {
