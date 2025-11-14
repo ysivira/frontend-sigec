@@ -16,6 +16,7 @@ NORMALMENTE * una ruta no definida.
 
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
+import MainLayout from '../components/layout/MainLayout';
 import LoginPage from '../pages/loginPage';
 import DashboardPage from '../pages/DashboardPage';
 
@@ -28,7 +29,13 @@ function AppRouter() {
   return (
     <Routes>
       <Route path="/login" element={<LoginPage />} />
-      <Route path="/dashboard" element={<DashboardPage />} />
+      <Route path="/" element={<MainLayout />}>
+        
+        <Route path="dashboard" element={<DashboardPage />} />
+                
+        <Route index element={<Navigate to="/dashboard" replace />} />
+      </Route>
+    
       <Route path="/*" element={<Navigate to="/login" replace />} />
     </Routes>
   );
