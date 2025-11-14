@@ -19,6 +19,7 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import MainLayout from '../components/layout/MainLayout';
 import LoginPage from '../pages/loginPage';
 import DashboardPage from '../pages/DashboardPage';
+import GestionEmpleadosPage from '../pages/GestionEmpleadosPage';
 
 /**
  * @file AppRouter.jsx
@@ -29,9 +30,10 @@ function AppRouter() {
   return (
     <Routes>
       <Route path="/login" element={<LoginPage />} />
+
       <Route path="/" element={<MainLayout />}>
-        
         <Route path="dashboard" element={<DashboardPage />} />
+        <Route path="empleados" element={<GestionEmpleadosPage />} />
                 
         <Route index element={<Navigate to="/dashboard" replace />} />
       </Route>
