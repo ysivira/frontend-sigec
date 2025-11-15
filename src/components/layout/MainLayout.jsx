@@ -29,6 +29,10 @@ import logo from '../../assets/logo_azul.png';
 
 const drawerWidth = 240; 
 
+/**
+ * @description Define la estructura visual principal de la aplicación, incluyendo la barra de navegación superior, el menú lateral y el área de contenido principal.
+ * @returns {JSX.Element} El componente del layout principal.
+ */
 function MainLayout() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
@@ -63,15 +67,12 @@ function MainLayout() {
       </Box>
       <List>
         {menuItems
-          .filter(item => item.roles.includes(user.rol)) 
+          .filter(item => user && item.roles.includes(user.rol)) 
           .map((item) => (
             <ListItem key={item.text} disablePadding>
               <ListItemButton
                 selected={location.pathname === item.path}
                 onClick={() => navigate(item.path)}
-                sx={{ 
-                  // ...
-                }}
               >
                 <ListItemIcon sx={{ color: location.pathname === item.path ? 'primary.main' : 'inherit' }}>
                   {item.icon}
@@ -115,7 +116,7 @@ function MainLayout() {
             variant="h6" 
             sx={{ display: { xs: 'none', sm: 'block' }, mr: 2 }} 
           >
-            ¡Hola, {user.nombre}!
+            ¡Hola, {user ? user.nombre: ''}!
           </Typography>
           
           <Button color="inherit" onClick={handleLogout}>

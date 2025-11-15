@@ -2,7 +2,7 @@
 // COMPONENTE: BARRA DE BÚSQUEDA DE EMPLEADOS 
 //============================================================================
 /**
- * @fileoverview Componente "tonto" (presentacional) que renderiza
+ * @fileoverview Componente (presentacional) que renderiza
  * la barra de búsqueda para la tabla de empleados.
  *
  * @description
@@ -13,6 +13,13 @@ import React from 'react';
 import { Box, TextField, InputAdornment, useTheme } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 
+/**
+ * @description Renderiza una barra de búsqueda para filtrar empleados.
+ * @param {object} props - Propiedades del componente.
+ * @param {string} props.filter - El valor actual del filtro de búsqueda.
+ * @param {function} props.onFilterChange - Función para manejar el cambio en el filtro.
+ * @returns {JSX.Element} El componente de la barra de búsqueda.
+ */
 function EmpleadosSearchBar({ filter, onFilterChange }) {
   const theme = useTheme();
 

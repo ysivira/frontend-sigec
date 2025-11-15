@@ -29,9 +29,12 @@ import {
 import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import { useAuth } from '../context/AuthContext';
-
 import SigecLogo from '../assets/sigec_logo.png';
 
+/**
+ * @description Renderiza la página de inicio de sesión con un formulario para la autenticación de usuarios.
+ * @returns {JSX.Element} El componente de la página de inicio de sesión.
+ */
 function LoginPage() {
   const [legajo, setLegajo] = useState('');
 

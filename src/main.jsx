@@ -17,16 +17,29 @@
 
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import { BrowserRouter } from 'react-router-dom'; 
-import { AuthProvider } from './context/AuthContext'; 
-import App from './App';
+import App from './App.jsx';
+import { BrowserRouter } from 'react-router-dom';
+import { AuthProvider } from './context/AuthContext.jsx';
+import { ThemeProvider } from '@mui/material/styles';
+import CssBaseline from '@mui/material/CssBaseline';
+import theme from './theme.js';
+import { Toaster } from 'react-hot-toast';
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <BrowserRouter>
       <AuthProvider>
-        <App />
+        <ThemeProvider theme={theme}>
+          <CssBaseline />
+          <Toaster 
+            position="top-right" 
+            toastOptions={{
+              duration: 5000, 
+            }}
+          />
+          <App />
+        </ThemeProvider>
       </AuthProvider>
     </BrowserRouter>
-  </React.StrictMode>
+  </React.StrictMode>,
 );

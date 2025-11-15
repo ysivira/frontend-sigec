@@ -6,7 +6,7 @@
  *
  * @description
  * Esta es una página temporal que sirve como destino de redirección
- * después de un inicio de sesión exitoso [35-1204].
+ * después de un inicio de sesión exitoso 
  *
  * Demuestra que el flujo de autenticación (Login -> Context -> Router -> Dashboard)
  * está funcionando correctamente.
@@ -18,6 +18,10 @@ import React from 'react';
 import { Typography, Box } from '@mui/material';
 import { useAuth } from '../context/AuthContext';
 
+/**
+ * @description Muestra una página de bienvenida al usuario después de iniciar sesión.
+ * @returns {JSX.Element} El componente de la página del dashboard.
+ */
 function DashboardPage() {
   const { user } = useAuth();
 
