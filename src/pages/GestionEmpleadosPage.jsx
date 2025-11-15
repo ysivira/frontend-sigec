@@ -1,13 +1,15 @@
 //============================================================================
-// PÁGINA DE GESTIÓN DE EMPLEADOS (CRUD)
+// PÁGINA DE GESTIÓN DE EMPLEADOS (Contenedor)
 //============================================================================
 /**
- * @fileoverview Página para la Gestión de Empleados (CRUD).
+ * @fileoverview Página "Contenedor" para la Gestión de Empleados.
  *
  * @description
- * Esta página es la "Oficina del Administrador" 
- * Implementa la parte de LEER (Read) y prepara los botones
- * para ACTUALIZAR (Update) y BORRAR (Delete) 
+ * Esta página es un "Componente Contenedor" (inteligente).
+ * 1. Maneja TODA la lógica de estado (useState).
+ * 2. Maneja TODA la carga de datos (useEffect, apiClient).
+ * 3. Maneja TODOS los 'handlers' (filtros, paginación, acciones).
+ * 4. Delega TODO el renderizado (la UI) a componentes "tontos".
  */
 
 import React, { useState, useEffect } from 'react';
@@ -16,24 +18,12 @@ import {
   Typography, 
   Box, 
   CircularProgress, 
-  Alert, 
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Paper,
-  useTheme,
-  IconButton,
-  TablePagination,
-  TextField,
-  InputAdornment 
+  Alert,
 } from '@mui/material';
-import EditIcon from '@mui/icons-material/Edit';
-import ToggleOnIcon from '@mui/icons-material/ToggleOn';
-import ToggleOffIcon from '@mui/icons-material/ToggleOff';
-import SearchIcon from '@mui/icons-material/Search';
+
+import EmpleadosSearchBar from '../components/admin/EmpleadosSearchBar';
+import EmpleadosTable from '../components/admin/EmpleadosTable';
+
 
 /**
  * Componente de la página de gestión de empleados.
@@ -42,17 +32,15 @@ import SearchIcon from '@mui/icons-material/Search';
  * @returns {JSX.Element} El componente de la página de gestión de empleados.
  */
 function GestionEmpleadosPage() {
+  // ESTADO 
   const [allEmployees, setAllEmployees] = useState([]); 
   const [loading, setLoading] = useState(true);   
   const [error, setError] = useState(null);      
-
   const [page, setPage] = useState(0); 
   const [rowsPerPage, setRowsPerPage] = useState(5); 
-
   const [filter, setFilter] = useState('');
 
-  const theme = useTheme();
-
+  // CARGA DE DATOS
   useEffect(() => {
     /**
      * Obtiene la lista de empleados desde la API.
@@ -64,7 +52,8 @@ function GestionEmpleadosPage() {
         
         const response = await apiClient.get('/employees');
         
-        await new Promise(resolve => setTimeout(resolve, 2000)); 
+        // Simulación de carga 
+        await new Promise(resolve => setTimeout(resolve, 1500)); 
         
         setAllEmployees(response.data); 
         
@@ -77,6 +66,8 @@ function GestionEmpleadosPage() {
 
     fetchEmployees(); 
   }, []); 
+
+  // MANEJADORES (Handlers) 
 
   /**
    * Maneja el cambio de página en la tabla.
@@ -106,6 +97,25 @@ function GestionEmpleadosPage() {
   };
 
   /**
+   * Maneja la acción de editar un empleado.
+   * @param {number} legajo 
+   */
+  const handleEdit = (legajo) => {
+    console.log(`(FUTURO) Abrir MODAL DE EDICIÓN para legajo: ${legajo}`);
+  };
+
+  /**
+   * Maneja la acción de cambiar el estado de un empleado.
+   * @param {number} legajo - El legajo del empleado.
+   * @param {string} nuevoEstado - El nuevo estado ('activo' or 'inactivo').
+   */
+  const handleToggleEstado = (legajo, nuevoEstado) => {
+    console.log(`(FUTURO) Llamar API para cambiar estado de ${legajo} a ${nuevoEstado}`);
+  };
+
+  // LÓGICA DE FILTRADO 
+
+  /**
    * Filtra los empleados basándose en el término de búsqueda.
    * @type {Array<Object>}
    */
@@ -122,22 +132,7 @@ function GestionEmpleadosPage() {
     );
   });
 
-  /**
-   * Maneja la acción de editar un empleado.
-   * @param {number} legajo 
-   */
-  const handleEdit = (legajo) => {
-    console.log(`(FUTURO) Abrir MODAL DE EDICIÓN para legajo: ${legajo}`);
-  };
-
-  /**
-   * Maneja la acción de cambiar el estado de un empleado.
-   * @param {number} legajo - El legajo del empleado.
-   * @param {string} nuevoEstado - El nuevo estado ('activo' or 'inactivo').
-   */
-  const handleToggleEstado = (legajo, nuevoEstado) => {
-    console.log(`(FUTURO) Llamar API para cambiar estado de ${legajo} a ${nuevoEstado}`);
-  };
+  // RENDERIZADO
 
   if (loading) {
     return (
@@ -159,6 +154,7 @@ function GestionEmpleadosPage() {
       </Box>
     );
   }
+  
   if (error) {
     return <Alert severity="error">{error}</Alert>;
   }
@@ -169,118 +165,22 @@ function GestionEmpleadosPage() {
         Gestión de Empleados
       </Typography>
       
-      <Box sx={{ mb: 2, display: 'flex', justifyContent: 'flex-end' }}>
-        <TextField
-          sx={{ width: '20%' }} 
-          variant="outlined"
-          placeholder="Buscar empleado..."
-          value={filter}
-          onChange={handleFilterChange}
-          InputProps={{
-            style: { 
-              color: theme.palette.text.primary, 
-              backgroundColor: '#FFFFFF', 
-              borderRadius: theme.shape.borderRadius 
-            },
-            startAdornment: (
-              <InputAdornment position="start">
-                <SearchIcon sx={{ color: theme.palette.text.secondary }} />
-              </InputAdornment>
-            ),
-          }}
-        />
-      </Box>
+      {/* Componente de Búsqueda */}
+      <EmpleadosSearchBar 
+        filter={filter}
+        onFilterChange={handleFilterChange}
+      />
 
-      <Paper sx={{ width: '100%', overflow: 'hidden' }}>
-        <TableContainer sx={{ maxHeight: 600 }}> 
-          <Table stickyHeader sx={{ tableLayout: 'fixed' }}> 
-            
-            <TableHead>
-              <TableRow sx={{ 
-                borderBottom: '2px solid', 
-                borderColor: 'primary.main',
-                '& .MuiTableCell-root': {
-                  color: 'text.primary', 
-                  fontWeight: 'bold', 
-                  fontSize: '0.95rem', 
-                  backgroundColor: 'background.paper'
-                }
-              }}>
-                <TableCell sx={{ width: '10%' }}>Legajo</TableCell>
-                <TableCell sx={{ width: '15%' }}>Nombre</TableCell>
-                <TableCell sx={{ width: '15%' }}>Apellido</TableCell>
-                <TableCell sx={{ width: '25%' }}>Email</TableCell>
-                <TableCell sx={{ width: '10%' }}>Rol</TableCell>
-                <TableCell sx={{ width: '10%' }}>Estado</TableCell>
-                <TableCell sx={{ width: '15%' }}>Acciones</TableCell>
-              </TableRow>
-            </TableHead>
-            
-            <TableBody sx={{ 
-              backgroundColor: '#FFFFFF',
-              '& .MuiTableCell-root': {
-                color: 'text.primary',
-                fontSize: '0.9rem'
-              }
-            }}>
-              {filteredEmployees
-                .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                .map((emp) => (
-                  <TableRow 
-                    key={emp.legajo} 
-                    sx={{ 
-                      outline: '1px solid transparent',
-                      '&:hover': { 
-                        backgroundColor: 'action.hover', 
-                        outlineColor: 'primary.main', 
-                      } 
-                    }}
-                  >
-                    <TableCell>{emp.legajo}</TableCell>
-                    <TableCell>{emp.nombre}</TableCell>
-                    <TableCell>{emp.apellido}</TableCell>
-                    <TableCell sx={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                      {emp.email}
-                    </TableCell>
-                    <TableCell>{emp.rol}</TableCell>
-                    <TableCell>{emp.estado}</TableCell>
-                    <TableCell>
-                      <Box sx={{ display: 'flex', gap: 0.1 }}>
-                        <IconButton color="primary" onClick={() => handleEdit(emp.legajo)}>
-                          <EditIcon />
-                        </IconButton>
-                        {emp.estado === 'activo' ? (
-                          <IconButton color="success" onClick={() => handleToggleEstado(emp.legajo, 'inactivo')}>
-                            <ToggleOnIcon />
-                          </IconButton>
-                        ) : (
-                          <IconButton color="error" onClick={() => handleToggleEstado(emp.legajo, 'activo')}>
-                            <ToggleOffIcon />
-                          </IconButton>
-                        )}
-                      </Box>
-                    </TableCell>
-                  </TableRow>
-                ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
-
-        <TablePagination
-          rowsPerPageOptions={[5, 10, 25]} 
-          component="div"
-          count={filteredEmployees.length} 
-          rowsPerPage={rowsPerPage} 
-          page={page} 
-          onPageChange={handleChangePage} 
-          onRowsPerPageChange={handleChangeRowsPerPage} 
-          labelRowsPerPage="Filas por página:"
-          sx={{ 
-            backgroundColor: 'background.paper',
-            color: 'text.primary'
-          }}
-        />
-      </Paper>
+      {/*Componente de Tabla */}
+      <EmpleadosTable
+        empleados={filteredEmployees}
+        page={page}
+        rowsPerPage={rowsPerPage}
+        onPageChange={handleChangePage}
+        onRowsPerPageChange={handleChangeRowsPerPage}
+        onEdit={handleEdit}
+        onToggleEstado={handleToggleEstado}
+      />
     </Box>
   );
 }

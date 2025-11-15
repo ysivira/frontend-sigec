@@ -1,152 +1,174 @@
 //============================================================================
-// LAYOUT PRINCIPAL (REUTILIZABLE)
+// LAYOUT PRINCIPAL DE LA APLICACIÓN
 //============================================================================
 /**
- * @fileoverview Componente "Layout" reutilizable para las páginas
- * privadas de la aplicación.
+ * @fileoverview Componente "Contenedor" de Nivel 1 (Layout).
  *
  * @description
- * Este es un componente "Contenedor" de Nivel 3 (reutilizable) [35-1245].
- * Su propósito es definir la estructura visual común (el "marco")
- * que todas las páginas interiores (Dashboard, Empleados, etc.) compartirán.
- *
- * Renderiza:
- * 1. El `AppBar` (barra superior) con el título y (futuro) botón de logout.
+ * Define la estructura visual común de la aplicación:
+ * 1. El `AppBar` (barra superior) con el título y botón de logout.
  * 2. El `Drawer` (menú lateral) con la navegación principal.
- * 3. Un `<Outlet />` de React-Router-Dom, que es el "espacio" donde
- * se inyectará el contenido de la página actual (ej. DashboardPage).
+ * 3. El `Box` (contenido) donde se renderizan las páginas.
+ *
  */
 
-import React from 'react';
+import React, { useState } from 'react';
+import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { 
-  AppBar, Toolbar, Typography, Box, Drawer, List, 
-  ListItem, ListItemText, CssBaseline, Button,
-  ListItemButton, ListItemIcon 
+  AppBar, Toolbar, Typography, Box, Drawer, List, ListItem, 
+  ListItemIcon, ListItemText, ListItemButton, CssBaseline, Button,
+  IconButton,
+  useTheme,
+  useMediaQuery
 } from '@mui/material';
 import DashboardIcon from '@mui/icons-material/Dashboard';
-import GroupIcon from '@mui/icons-material/Group';
+import PeopleIcon from '@mui/icons-material/People'; 
+import MenuIcon from '@mui/icons-material/Menu'; 
+import { useAuth } from '../../context/AuthContext';
+import logo from '../../assets/logo_azul.png'; 
 
-import { Outlet, useNavigate, useLocation } from 'react-router-dom'; 
-
-import SigecLogoAzul from '../../assets/logo_azul.png'; 
-import { useAuth } from '../../context/AuthContext'; 
-
-const drawerWidth = 240;
+const drawerWidth = 240; 
 
 function MainLayout() {
   const { user, logout } = useAuth();
-  const navigate = useNavigate(); 
+  const navigate = useNavigate();
   const location = useLocation();
+
+  const theme = useTheme();
+  const isSmUp = useMediaQuery(theme.breakpoints.up('sm')); 
+  const [mobileOpen, setMobileOpen] = useState(false);
+
+  const handleDrawerToggle = () => {
+    setMobileOpen(!mobileOpen);
+  };
+  
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
+
+  const menuItems = [
+    { text: 'Inicio (Dashboard)', icon: <DashboardIcon />, path: '/dashboard', roles: ['administrador', 'asesor', 'supervisor'] },
+    { text: 'Gestión Empleados', icon: <PeopleIcon />, path: '/empleados', roles: ['administrador'] },
+  ];
+
+  const drawerContent = (
+    <div>
+      <Box sx={{ p: 2, display: 'flex', justifyContent: 'center' }}>
+        <img 
+          src={logo} 
+          alt="Logo SIGEC" 
+          style={{ width: 'auto', height: '80px' }} 
+        />
+      </Box>
+      <List>
+        {menuItems
+          .filter(item => item.roles.includes(user.rol)) 
+          .map((item) => (
+            <ListItem key={item.text} disablePadding>
+              <ListItemButton
+                selected={location.pathname === item.path}
+                onClick={() => navigate(item.path)}
+                sx={{ 
+                  // ...
+                }}
+              >
+                <ListItemIcon sx={{ color: location.pathname === item.path ? 'primary.main' : 'inherit' }}>
+                  {item.icon}
+                </ListItemIcon>
+                <ListItemText primary={item.text} />
+              </ListItemButton>
+            </ListItem>
+          ))}
+      </List>
+    </div>
+  );
 
   return (
     <Box sx={{ display: 'flex' }}>
       <CssBaseline />
       
-      {/* APPBAR (Barra Superior) */}
+      {/* APP BAR (BARRA SUPERIOR)*/}
       <AppBar 
-        position="fixed" 
-        sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}
+        position="fixed"
+        sx={{
+          width: { sm: `calc(100% - ${drawerWidth}px)` },
+          ml: { sm: `${drawerWidth}px` },
+        }}
       >
         <Toolbar>
-          <Typography variant="h6" noWrap component="div">
+          <IconButton
+            color="inherit"
+            aria-label="open drawer"
+            edge="start"
+            onClick={handleDrawerToggle}
+            sx={{ mr: 2, display: { sm: 'none' } }} 
+          >
+            <MenuIcon />
+          </IconButton>
+          
+          <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
             Sistema de Gestión (SIGEC)
           </Typography>
-          <Box sx={{ flexGrow: 1 }} />
-          <Typography variant="h6" component="div" sx={{ mr: 2 }}>
-            ¡Hola, {user ? user.nombre : 'Usuario'}!
+
+          <Typography 
+            variant="h6" 
+            sx={{ display: { xs: 'none', sm: 'block' }, mr: 2 }} 
+          >
+            ¡Hola, {user.nombre}!
           </Typography>
-          <Button color="inherit" onClick={logout}>
+          
+          <Button color="inherit" onClick={handleLogout}>
             Cerrar Sesión
           </Button>
         </Toolbar>
       </AppBar>
-
-      {/* DRAWER (Menú Lateral) */}
-      <Drawer
-        sx={{
-          width: drawerWidth,
-          flexShrink: 0,
-          '& .MuiDrawer-paper': {
-            width: drawerWidth,
-            boxSizing: 'border-box',
-            backgroundColor: '#FFFFFF', 
-          },
-        }}
-        variant="permanent" 
-        anchor="left"
+      
+      {/* DRAWER (MENÚ LATERAL) */}
+      <Box
+        component="nav"
+        sx={{ width: { sm: drawerWidth }, flexShrink: { sm: 0 } }}
+        aria-label="mailbox folders"
       >
-        <Toolbar /> 
-        <Box sx={{ display: 'flex', justifyContent: 'center', p: 2 }}>
-          <img 
-            src={SigecLogoAzul} 
-            alt="Logo SIGEC" 
-            style={{ width: '70%', height: 'auto' }} 
-          />
-        </Box>
-
-        <List>
-          {/* Dashboard */}
-          <ListItemButton 
-            onClick={() => navigate('/dashboard')}
-            selected={location.pathname === '/dashboard'}
-            sx={{
-              '&.Mui-selected': {
-                backgroundColor: 'primary.main',
-                color: 'primary.contrastText', 
-                '& .MuiListItemIcon-root': {
-                  color: 'primary.contrastText', 
-                },
-              },
-              '&.Mui-selected:hover': {
-                backgroundColor: 'primary.dark', 
-              }
-            }}
-          >
-            <ListItemIcon>
-              <DashboardIcon />
-            </ListItemIcon>
-            <ListItemText primary="Inicio (Dashboard)" />
-          </ListItemButton>
-
-          {/* Gestión Empleados */}
-          {user && user.rol === 'administrador' && (
-            <ListItemButton 
-              onClick={() => navigate('/empleados')}
-              selected={location.pathname === '/empleados'}
-              sx={{
-                '&.Mui-selected': {
-                  backgroundColor: 'primary.main',
-                  color: 'primary.contrastText',
-                  '& .MuiListItemIcon-root': {
-                    color: 'primary.contrastText',
-                  },
-                },
-                '&.Mui-selected:hover': {
-                  backgroundColor: 'primary.dark',
-                }
-              }}
-            >
-              <ListItemIcon>
-                <GroupIcon />
-              </ListItemIcon>
-              <ListItemText primary="Gestión Empleados" />
-            </ListItemButton>
-          )}
-          
-        </List>
-      </Drawer>
-
-      {/* CONTENIDO PRINCIPAL */}
+        {/* Menú en MÓVIL */}
+        <Drawer
+          variant="temporary"
+          open={mobileOpen}
+          onClose={handleDrawerToggle}
+          ModalProps={{
+            keepMounted: true, 
+          }}
+          sx={{
+            display: { xs: 'block', sm: 'none' }, 
+            '& .MuiDrawer-paper': { boxSizing: 'border-box', width: drawerWidth },
+          }}
+        >
+          {drawerContent}
+        </Drawer>
+        
+        {/* Menú en DESKTOP */}
+        <Drawer
+          variant="permanent"
+          sx={{
+            display: { xs: 'none', sm: 'block' }, 
+            '& .MuiDrawer-paper': { boxSizing: 'border-box', width: drawerWidth },
+          }}
+          open
+        >
+          {drawerContent}
+        </Drawer>
+      </Box>
+      
+      {/* CONTENIDO PRINCIPAL (LA PÁGINA) */}
       <Box
         component="main"
         sx={{ 
           flexGrow: 1, 
-          bgcolor: 'background.default', 
           p: 3, 
-          minHeight: '100vh' 
+          width: { sm: `calc(100% - ${drawerWidth}px)` },
+          marginTop: '64px'
         }}
       >
-        <Toolbar /> 
         <Outlet /> 
       </Box>
     </Box>
