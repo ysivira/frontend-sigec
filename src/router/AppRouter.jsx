@@ -17,9 +17,14 @@ NORMALMENTE * una ruta no definida.
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import MainLayout from '../components/layout/MainLayout';
-import LoginPage from '../pages/loginPage';
+import LoginPage from '../pages/LoginPage';
 import DashboardPage from '../pages/DashboardPage';
-import GestionEmpleadosPage from '../pages/GestionEmpleadosPage';
+import ManageEmployeesPage from '../pages/ManageEmployeesPage';
+import RegisterPage from '../pages/RegisterPage';
+import ForgotPasswordPage from '../pages/ForgotPasswordPage';
+import ResetPasswordPage from '../pages/ResetPasswordPage';
+import ManagePlansPage from '../pages/ManagePlansPage';
+import ManagePricesPage from '../pages/ManagePricesPage';
 
 /**
  * @file AppRouter.jsx
@@ -30,10 +35,15 @@ function AppRouter() {
   return (
     <Routes>
       <Route path="/login" element={<LoginPage />} />
+      <Route path="/register" element={<RegisterPage />} />
+      <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+      <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
 
       <Route path="/" element={<MainLayout />}>
         <Route path="dashboard" element={<DashboardPage />} />
-        <Route path="empleados" element={<GestionEmpleadosPage />} />
+        <Route path="empleados" element={<ManageEmployeesPage />} />
+        <Route path="planes" element={<ManagePlansPage />} />
+        <Route path="precios" element={<ManagePricesPage />} />
                 
         <Route index element={<Navigate to="/dashboard" replace />} />
       </Route>

@@ -36,7 +36,7 @@ import { ROLES } from '../../utils/constants';
  * @param {Array<object>} props.allEmployees - La lista de todos los empleados (para encontrar supervisores).
  * @returns {JSX.Element|null} El componente del modal de edición o null si no hay empleado.
  */
-function EmpleadosEditModal({ open, onClose, onSave, employee, allEmployees }) {
+function EmployeesEditModal({ open, onClose, onSave, employee, allEmployees }) {
   const [formData, setFormData] = useState({
     rol: '',
     supervisor_id: null,
@@ -51,17 +51,16 @@ function EmpleadosEditModal({ open, onClose, onSave, employee, allEmployees }) {
     }
   }, [employee]); 
 
-  const supervisores = allEmployees.filter(
+  // Filtra solo los roles que pueden ser supervisores
+  const supervisors = allEmployees.filter(
     emp => emp.rol === ROLES.SUPERVISOR || emp.rol === ROLES.ADMINISTRADOR
   );
 
   const handleChange = (event) => {
     const { name, value } = event.target;
     
-    // Hacemos una copia de los datos actuales del formulario
     const newFormData = { ...formData };
     
-    // Si estamos cambiando el 'rol'
     if (name === 'rol') {
       newFormData.rol = value;
       // Si el nuevo rol NO es 'asesor', no puede tener supervisor.
@@ -70,9 +69,7 @@ function EmpleadosEditModal({ open, onClose, onSave, employee, allEmployees }) {
       }
     }
 
-    // Si estamos cambiando el 'supervisor_id'
     if (name === 'supervisor_id') {
-      // El valor 'null' del MenuItem viene como string 'null'
       newFormData.supervisor_id = (value === 'null' ? null : value);
     }
     
@@ -80,8 +77,6 @@ function EmpleadosEditModal({ open, onClose, onSave, employee, allEmployees }) {
   };
 
   const handleSave = () => {
-    // Combinamos los datos originales del empleado con los
-    // nuevos datos del formulario (rol y supervisor_id)
     const updatedData = { 
       ...employee, 
       ...formData,
@@ -94,7 +89,7 @@ function EmpleadosEditModal({ open, onClose, onSave, employee, allEmployees }) {
     return null; 
   }
 
-  const esAsesor = formData.rol === ROLES.ASESOR;
+  const isAdvisor = formData.rol === ROLES.ASESOR;
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
@@ -124,7 +119,7 @@ function EmpleadosEditModal({ open, onClose, onSave, employee, allEmployees }) {
             sx={{ mb: 2 }}
           />
 
-          {/* Selector de ROL  */}
+          {/* Selector de ROL */}
           <FormControl fullWidth sx={{ mb: 2 }}>
             <InputLabel id="rol-select-label">Rol</InputLabel>
             <Select
@@ -140,9 +135,8 @@ function EmpleadosEditModal({ open, onClose, onSave, employee, allEmployees }) {
             </Select>
           </FormControl>
 
-          {/* Selector de SUPERVISOR (Condicional) */}
-          {/* Solo se muestra si el ROL seleccionado es "Asesor" */}
-          {esAsesor && (
+          {/* Selector de SUPERVISOR */}
+          {isAdvisor && (
             <FormControl fullWidth sx={{ mb: 2 }}>
               <InputLabel id="supervisor-select-label">Supervisor Asignado</InputLabel>
               <Select
@@ -156,8 +150,7 @@ function EmpleadosEditModal({ open, onClose, onSave, employee, allEmployees }) {
                   <em>(Ninguno)</em>
                 </MenuItem>
                 
-                {/* Mapeamos la lista de supervisores que filtramos */}
-                {supervisores.map(sup => (
+                {supervisors.map(sup => (
                   <MenuItem key={sup.legajo} value={sup.legajo}>
                     {sup.nombre} {sup.apellido} ({sup.legajo})
                   </MenuItem>
@@ -180,4 +173,4 @@ function EmpleadosEditModal({ open, onClose, onSave, employee, allEmployees }) {
   );
 }
 
-export default EmpleadosEditModal;
+export default EmployeesEditModal;

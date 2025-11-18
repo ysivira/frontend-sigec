@@ -17,6 +17,7 @@
 import React from 'react';
 import { Typography, Box } from '@mui/material';
 import { useAuth } from '../context/AuthContext';
+import SigecLogo from '../assets/sigec_logo.png'; 
 
 /**
  * @description Muestra una página de bienvenida al usuario después de iniciar sesión.
@@ -32,10 +33,25 @@ function DashboardPage() {
         flexDirection: 'column',
         justifyContent: 'center',
         alignItems: 'center',
-        minHeight: '100vh',
+        minHeight: '75vh',
         color: '#FFFFFF',
+        textAlign: 'center',
+        py: 4,
       }}
     >
+
+      <Box
+        component="img"
+        src={SigecLogo}
+        alt="Logo SIGEC"
+        sx={{
+          maxWidth: '300px', 
+          width: '100%',
+          height: 'auto',
+          mb: 4, 
+        }}
+      />
+      
       <Typography variant="h3" component="h1" gutterBottom>
         ¡Bienvenido, {user ? user.nombre : 'Usuario'}!
       </Typography>

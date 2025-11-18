@@ -25,7 +25,7 @@ import ToggleOffIcon from '@mui/icons-material/ToggleOff';
 /**
  * @description Renderiza una tabla con la lista de empleados y permite la paginación y acciones sobre ellos.
  * @param {object} props - Propiedades del componente.
- * @param {Array<object>} props.empleados - La lista de empleados a mostrar.
+ * @param {Array<object>} props.employees - La lista de empleados a mostrar.
  * @param {number} props.page - La página actual de la tabla.
  * @param {number} props.rowsPerPage - El número de filas por página.
  * @param {function} props.onPageChange - Función para manejar el cambio de página.
@@ -34,14 +34,14 @@ import ToggleOffIcon from '@mui/icons-material/ToggleOff';
  * @param {function} props.onToggleEstado - Función para manejar el cambio de estado de un empleado.
  * @returns {JSX.Element} El componente de la tabla de empleados.
  */
-function EmpleadosTable({ 
-  empleados, 
+function EmployeesTable({ 
+  employees, 
   page, 
   rowsPerPage, 
   onPageChange, 
   onRowsPerPageChange, 
   onEdit, 
-  onToggleEstado 
+  onToggleStatus
 }) {
 
   const renderEstado = (emp) => {
@@ -61,7 +61,7 @@ function EmpleadosTable({
     // Activo
     if (emp.estado === 'activo') {
       return (
-        <IconButton color="success" onClick={() => onToggleEstado(emp.legajo, 'inactivo')}>
+        <IconButton color="success" onClick={() => onToggleStatus(emp.legajo, 'inactivo')}>
           <ToggleOnIcon />
         </IconButton>
       );
@@ -69,12 +69,11 @@ function EmpleadosTable({
 
     // Inactivo (Suspendido, pero ya confirmado)
     return (
-      <IconButton color="error" onClick={() => onToggleEstado(emp.legajo, 'activo')}>
+      <IconButton color="error" onClick={() => onToggleStatus(emp.legajo, 'activo')}>
         <ToggleOffIcon />
       </IconButton>
     );
   };
-
 
   return (
     <Paper sx={{ width: '100%', overflow: 'hidden' }}>
@@ -86,7 +85,7 @@ function EmpleadosTable({
               borderBottom: '2px solid', 
               borderColor: 'primary.main',
               '& .MuiTableCell-root': {
-                color: 'text.primary', 
+                color: 'primary.main', 
                 fontWeight: 'bold', 
                 fontSize: '0.95rem', 
                 backgroundColor: 'background.paper'
@@ -109,7 +108,7 @@ function EmpleadosTable({
               fontSize: '0.9rem'
             }
           }}>
-            {empleados
+            {employees
               .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
               .map((emp) => (
                 <TableRow 
@@ -143,7 +142,7 @@ function EmpleadosTable({
       <TablePagination
         rowsPerPageOptions={[6, 12, 18, 24]} 
         component="div"
-        count={empleados.length}
+        count={employees.length}
         rowsPerPage={rowsPerPage} 
         page={page} 
         onPageChange={onPageChange} 
@@ -158,4 +157,4 @@ function EmpleadosTable({
   );
 }
 
-export default EmpleadosTable;
+export default EmployeesTable;

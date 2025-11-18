@@ -20,7 +20,7 @@ import SearchIcon from '@mui/icons-material/Search';
  * @param {function} props.onFilterChange - Función para manejar el cambio en el filtro.
  * @returns {JSX.Element} El componente de la barra de búsqueda.
  */
-function EmpleadosSearchBar({ filter, onFilterChange }) {
+function EmployeesSearchBar({ filter, onFilterChange }) {
   const theme = useTheme();
 
   return (
@@ -53,4 +53,4 @@ function EmpleadosSearchBar({ filter, onFilterChange }) {
   );
 }
 
-export default EmpleadosSearchBar;
+export default EmployeesSearchBar;

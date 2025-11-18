@@ -3,20 +3,7 @@
 //============================================================================
 /**
  * @fileoverview Página de inicio de sesión para SIGEC.
- *
- * @description
- * Este componente de página renderiza el formulario de autenticación.
- * Es la puerta de entrada principal a la aplicación.
- *
- * Responsabilidades:
- * 1. Renderizar la interfaz de usuario del formulario (campos, logo, botón).
- * 2. Manejar el estado local de los campos (legajo, clave).
- * 3. Implementar lógica de UX (mostrar/ocultar clave, "Recuérdame").
- * 4. Realizar la solicitud POST a la API del backend (`/api/employees/login`).
- * 5. Gestionar y mostrar al usuario los errores devueltos por la API
- * (ej. "Credenciales incorrectas", "Demasiados intentos").
- * 6. En caso de éxito, invocar la función `login()` del `AuthContext`
- * para establecer la sesión global y redirigir al Dashboard.
+ * Se conecta con Register y ForgotPassword.
  */
 
 import React, { useState } from 'react';
@@ -28,51 +15,27 @@ import {
 } from '@mui/material';
 import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
-import { useAuth } from '../context/AuthContext';
+import { Link as RouterLink } from 'react-router-dom'; 
+import { useAuth } from '../context/AuthContext.jsx';
 import SigecLogo from '../assets/sigec_logo.png';
 
-/**
- * @description Renderiza la página de inicio de sesión con un formulario para la autenticación de usuarios.
- * @returns {JSX.Element} El componente de la página de inicio de sesión.
- */
 function LoginPage() {
   const [legajo, setLegajo] = useState('');
-
   const [password, setPassword] = useState('');
-
   const [showPassword, setShowPassword] = useState(false);
-
   const [rememberMe, setRememberMe] = useState(false);
-
   const [errorMsg, setErrorMsg] = useState('');
-
   const { login } = useAuth();
-
-  /**
-   * @description Maneja el evento de clic para mostrar u ocultar la contraseña.
-   */
   const handleClickShowPassword = () => setShowPassword((show) => !show);
 
-  /**
-   * @description Previene el comportamiento por defecto del evento onMouseDown.
-   * @param {React.MouseEvent<HTMLButtonElement>} event - El evento del mouse.
-   */
   const handleMouseDownPassword = (event) => {
     event.preventDefault();
   };
 
-  /**
-   * @description Maneja el cambio de estado del checkbox "Recuérdame".
-   * @param {React.ChangeEvent<HTMLInputElement>} event - El evento de cambio.
-   */
   const handleRememberMeChange = (event) => {
     setRememberMe(event.target.checked);
   };
 
-  /**
-   * @description Maneja el envío del formulario de inicio de sesión.
-   * @param {React.FormEvent<HTMLFormElement>} event - El evento de envío del formulario.
-   */
   const handleSubmit = async (event) => {
     event.preventDefault();
     setErrorMsg('');
@@ -229,10 +192,29 @@ function LoginPage() {
               />
             </Grid>
 
-            {/* Link Olvide mi contraseña */}
+            {/* 2. ENLACE: OLVIDÉ MI CONTRASEÑA */}
             <Grid item>
-              <Link href="#" variant="body2" color="primary">
+              <Link 
+                component={RouterLink} 
+                to="/forgot-password" 
+                variant="body2" 
+                color="primary"
+              >
                 ¿Olvidó su contraseña?
+              </Link>
+            </Grid>
+          </Grid>
+
+          {/* 3. ENLACE: REGISTRO */}
+          <Grid container justifyContent="center" sx={{ mt: 2 }}>
+            <Grid item>
+              <Link 
+                component={RouterLink} 
+                to="/register" 
+                variant="body2" 
+                color="primary"
+              >
+                ¿No tienes cuenta? Regístrate
               </Link>
             </Grid>
           </Grid>

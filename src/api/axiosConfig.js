@@ -1,5 +1,5 @@
 //============================================================================
-// CONFIGURACIÓN CENTRALIZADA DE AXIOS (EL "MENSAJERO")
+// CONFIGURACIÓN CENTRALIZADA DE AXIOS 
 //============================================================================
 /**
  * @fileoverview Configuración centralizada de Axios.

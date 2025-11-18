@@ -24,6 +24,8 @@ import {
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import PeopleIcon from '@mui/icons-material/People'; 
 import MenuIcon from '@mui/icons-material/Menu'; 
+import MenuBookIcon from '@mui/icons-material/MenuBook';
+import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
 import { useAuth } from '../../context/AuthContext';
 import logo from '../../assets/logo_azul.png'; 
 
@@ -54,6 +56,8 @@ function MainLayout() {
   const menuItems = [
     { text: 'Inicio (Dashboard)', icon: <DashboardIcon />, path: '/dashboard', roles: ['administrador', 'asesor', 'supervisor'] },
     { text: 'Gestión Empleados', icon: <PeopleIcon />, path: '/empleados', roles: ['administrador'] },
+    { text: 'Planes', icon: <MenuBookIcon />, path: '/planes', roles: ['administrador'] },
+    { text: 'Gestión de Precios', icon: <AttachMoneyIcon />, path: '/precios', roles: ['administrador'] }
   ];
 
   const drawerContent = (

@@ -6,7 +6,7 @@
  *
  * @description
  * Este archivo es el "cerebro" (estado global) que gestiona la sesión
- * del usuario en toda la aplicación, implementando la Unidad 5 (Context API).
+ * del usuario en toda la aplicación
  *
  * Define y provee:
  * 1. El estado del usuario (`user`) y el `token`.
