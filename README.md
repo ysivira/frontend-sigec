@@ -37,16 +37,12 @@ Sigue estos pasos para levantar el proyecto en tu entorno local.
     * Repositorio Backend: [https://github.com/ysivira/backend-sigec](https://github.com/ysivira/backend-sigec)
 
 ### 2. Clonar e Instalar
- ```bash
+ 
     git clone [https://github.com/ysivira/frontend-sigec](https://github.com/ysivira/frontend-sigec)
-    ```
-    cd frontend-sigec
-    
-    ```bash 
-    npm install 
-    ```
-
-    
+   
+    Accede a la carpeta del proyecto e instala las dependencias cd frontend-sigec
+        npm install 
+       
 3. Variables de Entorno (.env)
 Es crucial configurar la URL del backend para que la aplicación funcione.
 
@@ -56,6 +52,4 @@ VITE_API_URL=http://localhost:5000/api
 4. Ejecutar el Proyecto
 Para iniciar el servidor de desarrollo (Vite):
 
-    ```bash  
-    npm run dev  
-    ``` 
+   
