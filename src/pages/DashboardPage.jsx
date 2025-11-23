@@ -1,17 +1,14 @@
 //============================================================================
-// PÁGINA "PLACEHOLDER" DEL DASHBOARD
+// PÁGINA DE INICIO (DASHBOARD)
 //============================================================================
 /**
- * @fileoverview Página "tonta" (placeholder) para el Dashboard.
+ * @fileoverview Página de bienvenida o "Dashboard" principal.
  *
  * @description
- * Esta es una página temporal que sirve como destino de redirección
- * después de un inicio de sesión exitoso 
- *
- * Demuestra que el flujo de autenticación (Login -> Context -> Router -> Dashboard)
- * está funcionando correctamente.
- *
- * Será reemplazada por el Layout principal de la aplicación.
+ * Esta página actúa como la pantalla de inicio después de que un usuario
+ * inicia sesión correctamente. Su propósito es dar la bienvenida al usuario,
+ * mostrando su nombre y rol, confirmando que el proceso de autenticación
+ * ha sido exitoso.
  */
 
 import React from 'react';
@@ -20,7 +17,9 @@ import { useAuth } from '../context/AuthContext';
 import SigecLogo from '../assets/sigec_logo.png'; 
 
 /**
- * @description Muestra una página de bienvenida al usuario después de iniciar sesión.
+ * @component DashboardPage
+ * @description Muestra una página de bienvenida personalizada para el usuario autenticado.
+ * Utiliza el `useAuth` hook para obtener y mostrar el nombre y rol del usuario.
  * @returns {JSX.Element} El componente de la página del dashboard.
  */
 function DashboardPage() {
@@ -33,10 +32,9 @@ function DashboardPage() {
         flexDirection: 'column',
         justifyContent: 'center',
         alignItems: 'center',
-        minHeight: '75vh',
+        minHeight: '80vh',
         color: '#FFFFFF',
         textAlign: 'center',
-        py: 4,
       }}
     >
 
@@ -45,18 +43,19 @@ function DashboardPage() {
         src={SigecLogo}
         alt="Logo SIGEC"
         sx={{
-          maxWidth: '300px', 
+          maxWidth: '180px', 
           width: '100%',
           height: 'auto',
-          mb: 4, 
+          mb: 3, 
+          filter: 'drop-shadow(0px 4px 8px rgba(0,0,0,0.3))' 
         }}
       />
       
-      <Typography variant="h3" component="h1" gutterBottom>
+      <Typography variant="h4" component="h1" gutterBottom sx={{ fontWeight: 'bold', letterSpacing: 1 }}>
         ¡Bienvenido, {user ? user.nombre : 'Usuario'}!
       </Typography>
       
-      <Typography variant="h6">
+      <Typography variant="subtitle1" sx={{ color: '#B0BEC5', textTransform: 'uppercase', letterSpacing: 2, fontSize: '0.9rem' }}>
         (Rol: {user ? user.rol : 'desconocido'})
       </Typography>
     </Box>

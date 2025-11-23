@@ -5,14 +5,13 @@
  * @fileoverview Punto de entrada principal de la aplicación React (Frontend).
  *
  * @description
- * Este archivo es el "motor de arranque". Utiliza `ReactDOM.createRoot`
- * para localizar el elemento <div id="root"> en `index.html` y
- * renderizar (inyectar) el componente raíz `<App />` dentro de él.
- *
- * También es el lugar donde se envuelve la aplicación completa con
- * los Proveedores de Contexto (Context Providers) de más alto nivel,
- * como `BrowserRouter` (para el enrutamiento) y `AuthProvider`
- * (para el estado de autenticación).
+ * Este archivo es el "motor de arranque" de la aplicación. Utiliza `ReactDOM.createRoot`
+ * para renderizar el componente raíz `<App />` en el DOM. Es el lugar donde se
+ * envuelve toda la aplicación con los proveedores de contexto globales:
+ * - `BrowserRouter`: Habilita el enrutamiento en toda la aplicación.
+ * - `AuthProvider`: Proporciona el estado de autenticación global.
+ * - `ThemeProvider`: Aplica el tema de diseño de Material-UI.
+ * - `Toaster`: Configura el sistema de notificaciones.
  */
 
 import React from 'react';

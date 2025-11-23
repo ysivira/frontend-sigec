@@ -18,12 +18,17 @@ import {
 import { toast } from 'react-hot-toast';
 import { TIPOS_INGRESO } from '../../utils/constants.js';
 
+/**
+ * Extensión del objeto TIPOS_INGRESO para incluir una opción que agrupe a todas las demás.
+ * @const {object}
+ */
 const TIPOS_INGRESO_EXT = {
     ...TIPOS_INGRESO,
     AMBAS: 'Ambas (Todas)'
 };
 
 /**
+ * @component BulkIncreaseModal
  * @description Muestra un modal para configurar y confirmar un aumento masivo.
  * @param {object} props - Propiedades del componente.
  * @param {boolean} props.open - Controla si el modal está visible.
@@ -36,16 +41,14 @@ function BulkIncreaseModal({ open, onClose, onSave }) {
   const [porcentaje, setPorcentaje] = useState('');
   const [tipoIngreso, setTipoIngreso] = useState(TIPOS_INGRESO.OBLIGATORIO);
 
-  // EFECTO: Reset al abrir 
+  // Resetea los estados del formulario cada vez que el modal se abre.
   useEffect(() => {
     if (open) {
       setPorcentaje('');
       setTipoIngreso(TIPOS_INGRESO.OBLIGATORIO);
     }
   }, [open]);
-
-  // HANDLERS 
-
+  
   /**
    * Valida los datos y ejecuta la acción de guardar del padre.
    * @param {object} event - Evento del formulario.
@@ -54,7 +57,7 @@ function BulkIncreaseModal({ open, onClose, onSave }) {
     event.preventDefault();
     const percentValue = parseFloat(porcentaje);
 
-    // Validación: El porcentaje debe ser un número positivo
+    // Validación para asegurar que el porcentaje sea un número positivo.
     if (isNaN(percentValue) || percentValue <= 0) {
       toast.error("Por favor, ingrese un porcentaje válido mayor a 0.");
       return;
@@ -101,12 +104,6 @@ function BulkIncreaseModal({ open, onClose, onSave }) {
               </MenuItem>
               <MenuItem value={TIPOS_INGRESO_EXT.VOLUNTARIO}>
                 {TIPOS_INGRESO_EXT.VOLUNTARIO}
-              </MenuItem>
-              <MenuItem value={TIPOS_INGRESO_EXT.MONOTRIBUTO}>
-                {TIPOS_INGRESO_EXT.MONOTRIBUTO}
-              </MenuItem>
-              <MenuItem value={TIPOS_INGRESO_EXT.AMBAS}>
-                {TIPOS_INGRESO_EXT.AMBAS}
               </MenuItem>
             </Select>
           </FormControl>

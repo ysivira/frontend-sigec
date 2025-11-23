@@ -60,7 +60,7 @@ function LoadingScreen({ message = "CARGANDO..." }) {
       }}
     >
       {/* LOGO */}
-      <Box sx={{ position: 'relative', width: '220px', height: 'auto', mb: 4 }}>
+      <Box sx={{ position: 'relative', width: '150px', height: 'auto', mb: 4 }}>
         
         {/* FONDO (Gris) */}
         <Box

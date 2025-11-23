@@ -2,10 +2,11 @@
 // CONSTANTES DEL FRONTEND
 //============================================================================
 /**
- * @file constants.js
- * @description Constantes de negocio utilizadas en el frontend para roles, estados,
- * tipos de ingreso y la estructura de rangos etarios para la carga de precios.
- *
+ * @fileoverview Constantes de negocio utilizadas en toda la aplicación.
+ * @description
+ * Este archivo centraliza valores fijos como roles, tipos de ingreso y la
+ * estructura de rangos etarios para asegurar la consistencia y facilitar
+ * el mantenimiento.
  */
 
 /**
@@ -92,9 +93,9 @@ const rangosStrings = [
 
 /**
  * @const {Array<Object>} RANGOS_ETARIOS
- * @description Estructura de rangos etarios generada a partir de `rangosStrings`.
- * Es utilizada por `BulkLoadModal.jsx` y el cotizador para iterar y validar rangos.
- * Estructura: [{ label: '0-25', min: 0, max: 25 }, ...]
+ * @description Estructura de datos de los rangos etarios, generada a partir de `rangosStrings`.
+ * Es utilizada por componentes como `BulkLoadModal.jsx` y el cotizador para iterar y validar rangos.
+ * Cada objeto tiene la forma: `{ label: '0-25', min: 0, max: 25 }`.
  */
 export const RANGOS_ETARIOS = rangosStrings.map(label => {
     // Intenta encontrar la parte numérica del rango
@@ -120,3 +121,33 @@ export const RANGOS_ETARIOS = rangosStrings.map(label => {
 
     return { label: finalLabel, min, max };
 });
+
+/**
+ * @const {Array<string>} PARENTESCOS
+ * @description Opciones de parentesco para los miembros del grupo familiar
+ */
+export const PARENTESCOS = ['Titular', 'Conyuge', 'Hijo'];
+
+/**
+ * @const {Array<string>} CATEGORIAS_MONOTRIBUTO
+ * @description Categorías de monotributo disponibles
+ */
+export const CATEGORIAS_MONOTRIBUTO = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K'];
+
+/**
+ * @const {Array<number>} DESCUENTOS_COMERCIALES
+ * @description Porcentajes de descuento comercial disponibles
+ */
+export const DESCUENTOS_COMERCIALES = [0, 10, 20, 30, 45];
+
+/**
+ * @const {Array<number>} DESCUENTOS_AFINIDAD
+ * @description Porcentajes de descuento por afinidad disponibles
+ */
+export const DESCUENTOS_AFINIDAD = [0, 10, 15];
+
+/**
+ * @const {Array<number>} DESCUENTOS_TARJETA
+ * @description Porcentajes de descuento por tarjeta de crédito
+ */
+export const DESCUENTOS_TARJETA = [0, 5];

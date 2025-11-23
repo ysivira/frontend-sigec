@@ -48,7 +48,7 @@ function PriceListTable({ entries, onEdit, onDelete }) {
 
   return (
     <Paper sx={{ width: '100%', overflow: 'hidden', borderRadius: 2, boxShadow: 3 }}>
-      <TableContainer sx={{ maxHeight: 600 }}> 
+      <TableContainer > 
         <Table stickyHeader size="small"> 
           
           {/* CABECERA */}
@@ -57,19 +57,22 @@ function PriceListTable({ entries, onEdit, onDelete }) {
               borderBottom: '2px solid', 
               borderColor: 'primary.main',
               '& .MuiTableCell-root': { 
+                py: 1, 
+                px: 2, 
                 color: 'primary.main', 
                 fontWeight: 'bold', 
-                backgroundColor: '#f5f5f5' 
+                backgroundColor: '#f5f5f5',
+                fontSize: '0.8rem'
               }
             }}>
               <TableCell sx={{ width: '40%' }}>Rango Etario</TableCell>
               <TableCell sx={{ width: '30%' }} align="right">Precio</TableCell>
-              <TableCell sx={{ width: '30%' }} align="center">Acciones</TableCell>
+              <TableCell className="no-print" sx={{ width: '30%' }} align="center">Acciones</TableCell>
             </TableRow>
           </TableHead>
           
           {/* CUERPO */}
-          <TableBody sx={{ backgroundColor: '#FFFFFF' }}>
+          <TableBody sx={{ backgroundColor: '#FFFFFF', '& .MuiTableCell-root': { py: 0.5, px: 2, fontSize: '0.8rem' } }}>
             
             {/* CASO: LISTA VACÍA */}
             {safeEntries.length === 0 ? (
@@ -97,7 +100,7 @@ function PriceListTable({ entries, onEdit, onDelete }) {
                   </TableCell>
                   
                   {/* Columna: Acciones */}
-                  <TableCell align="center">
+                  <TableCell className="no-print" align="center">
                     <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1 }}>
                       <IconButton size="small" color="primary" onClick={() => onEdit(precio)}>
                         <EditIcon fontSize="small" />

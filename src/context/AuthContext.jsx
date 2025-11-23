@@ -3,26 +3,17 @@
 //============================================================================
 /**
  * @fileoverview Proveedor de Contexto (Context Provider) para el estado global de autenticación.
- *
  * @description
- * Este archivo es el "cerebro" (estado global) que gestiona la sesión
- * del usuario en toda la aplicación
- *
- * Define y provee:
- * 1. El estado del usuario (`user`) y el `token`.
- * 2. La función `login()`:
- * - Guarda los datos en el estado.
- * - Guarda el token en `localStorage` o `sessionStorage` (según "Recuérdame").
- * - Redirige al usuario al `/dashboard`.
- * 3. La función `logout()`:
- * - Limpia el estado y el almacenamiento.
- * - Redirige al `/login`.
- *
- * Cualquier componente puede acceder a esta información usando el hook `useAuth()`.
+ * Este módulo define y exporta el `AuthContext` y su `AuthProvider`.
+ * El `AuthProvider` gestiona el estado de autenticación global de la aplicación,
+ * incluyendo los datos del usuario y el token JWT. Proporciona funciones para
+ * `login` y `logout`, y persiste el estado de la sesión utilizando
+ * `localStorage` o `sessionStorage`.
  */
 
 import React, { createContext, useState, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
+import apiClient from '../api/axiosConfig'; 
 
 const AuthContext = createContext();
 
@@ -30,8 +21,16 @@ export const useAuth = () => {
   return useContext(AuthContext);
 };
 
+/**
+ * @component AuthProvider
+ * @description Componente que envuelve la aplicación o partes de ella para proveer el contexto de autenticación.
+ * @param {object} props - Propiedades del componente.
+ * @param {React.ReactNode} props.children - Los componentes hijos que tendrán acceso al contexto.
+ * @returns {JSX.Element}
+ */
 export const AuthProvider = ({ children }) => {
   
+  // ESTADOS INICIALES 
   const [user, setUser] = useState(() => {
     try {
       const savedUser = localStorage.getItem('authUser') || sessionStorage.getItem('authUser');
@@ -51,30 +50,41 @@ export const AuthProvider = ({ children }) => {
   const navigate = useNavigate();
 
   /**
-   * @description Función para iniciar sesión.
-   * @param {object} data - Datos del usuario y token (¡objeto PLANO!)
+   * @description Función para iniciar sesión (API + Estado).
+   * @param {string} legajo - Legajo del usuario.
+   * @param {string} password - Contraseña.
    * @param {boolean} rememberMe - Si se debe recordar la sesión.
    */
-  const login = (data, rememberMe) => {
+  const login = async (legajo, password, rememberMe = false) => {
+    try {
+      //  LLAMADA AL BACKEND 
+      const response = await apiClient.post('/employees/login', { legajo, password });
+      
+      // EXTRAER DATOS
+      const { token, ...datosDelUsuario } = response.data;
 
-    // Extrae el token
-    const { token, ...datosDelUsuario } = data;
-    
-    // Guarda en el ESTADO
-    setUser(datosDelUsuario); 
-    setToken(token);
+      // GUARDAR EN ESTADO
+      setUser(datosDelUsuario);
+      setToken(token);
 
-    // Guarda en el ALMACENAMIENTO
-    if (rememberMe) {
-      localStorage.setItem('authToken', token);
-      localStorage.setItem('authUser', JSON.stringify(datosDelUsuario));
-    } else {
-      sessionStorage.setItem('authToken', token);
-      sessionStorage.setItem('authUser', JSON.stringify(datosDelUsuario));
+      //  GUARDAR EN ALMACENAMIENTO 
+      if (rememberMe) {
+        localStorage.setItem('authToken', token);
+        localStorage.setItem('authUser', JSON.stringify(datosDelUsuario));
+      } else {
+        sessionStorage.setItem('authToken', token);
+        sessionStorage.setItem('authUser', JSON.stringify(datosDelUsuario));
+      }
+
+      // REDIRIGIR
+      navigate('/dashboard');
+      
+      return true; 
+
+    } catch (error) {
+      console.error("Error en login:", error);
+      throw error; 
     }
-
-    // Redirige
-    navigate('/dashboard');
   };
 
   /**
@@ -83,6 +93,7 @@ export const AuthProvider = ({ children }) => {
   const logout = () => {
     setUser(null);
     setToken(null);
+    // Limpiamos ambos por seguridad
     localStorage.removeItem('authToken');
     localStorage.removeItem('authUser');
     sessionStorage.removeItem('authToken');

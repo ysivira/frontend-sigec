@@ -27,21 +27,26 @@ function EmployeesSearchBar({ filter, onFilterChange }) {
     <Box sx={{ 
       mb: 2, 
       display: 'flex', 
-      justifyContent: { xs: 'center', sm: 'flex-end' } 
+      justifyContent: 'flex-end'
     }}>
       <TextField
-        
-        sx={{ width: { xs: '100%', sm: '20%' } }} 
+        size="small"
         variant="outlined"
         placeholder="Buscar empleado..."
         value={filter}
         onChange={onFilterChange}
-        InputProps={{
-          style: { 
-            color: theme.palette.text.primary, 
-            backgroundColor: '#FFFFFF', 
-            borderRadius: theme.shape.borderRadius 
+        sx={{ 
+          width: { xs: '100%', sm: '30%' },
+          '& .MuiInputBase-root': {
+            backgroundColor: '#FFFFFF',
+            borderRadius: theme.shape.borderRadius,
+            fontSize: '0.875rem', 
           },
+          '& .MuiInputBase-input': {
+            padding: '8px 12px', 
+          }
+        }}
+        InputProps={{
           startAdornment: (
             <InputAdornment position="start">
               <SearchIcon sx={{ color: theme.palette.text.secondary }} />

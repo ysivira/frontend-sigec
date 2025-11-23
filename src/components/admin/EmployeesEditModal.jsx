@@ -37,35 +37,47 @@ import { ROLES } from '../../utils/constants';
  * @returns {JSX.Element|null} El componente del modal de edición o null si no hay empleado.
  */
 function EmployeesEditModal({ open, onClose, onSave, employee, allEmployees }) {
+  /**
+   * Estado local para manejar los datos del formulario de edición.
+   * @type {[object, React.Dispatch<React.SetStateAction<object>>]}
+   */
   const [formData, setFormData] = useState({
     rol: '',
     supervisor_id: null,
   });
 
+  // Sincroniza el estado del formulario con los datos del empleado cuando este cambia.
   useEffect(() => {
     if (employee) {
       setFormData({
         rol: employee.rol || '',
-        supervisor_id: employee.supervisor_id || null, 
+        supervisor_id: employee.supervisor_id || null,
       });
     }
-  }, [employee]); 
+  }, [employee]);
 
-  // Filtra solo los roles que pueden ser supervisores
+  /**
+   * Filtra la lista de todos los empleados para obtener solo aquellos que pueden ser supervisores.
+   * @type {Array<object>}
+   */
   const supervisors = allEmployees.filter(
     emp => emp.rol === ROLES.SUPERVISOR || emp.rol === ROLES.ADMINISTRADOR
   );
 
+  /**
+   * Maneja los cambios en los campos del formulario y actualiza el estado `formData`.
+   * @param {React.ChangeEvent<HTMLInputElement>} event - El evento de cambio.
+   */
   const handleChange = (event) => {
     const { name, value } = event.target;
-    
+
     const newFormData = { ...formData };
-    
+
     if (name === 'rol') {
       newFormData.rol = value;
-      // Si el nuevo rol NO es 'asesor', no puede tener supervisor.
+      // Si el rol deja de ser 'Asesor', se elimina la asignación de supervisor.
       if (value !== ROLES.ASESOR) {
-        newFormData.supervisor_id = null; 
+        newFormData.supervisor_id = null;
       }
     }
 
@@ -92,7 +104,7 @@ function EmployeesEditModal({ open, onClose, onSave, employee, allEmployees }) {
   const isAdvisor = formData.rol === ROLES.ASESOR;
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
+    <Dialog open={open} onClose={onClose} maxWidth="xs" fullWidth>
       <DialogTitle>
         Editar Empleado: 
         <Typography component="span" variant="h6" color="primary.main" sx={{ ml: 1 }}>
@@ -101,10 +113,11 @@ function EmployeesEditModal({ open, onClose, onSave, employee, allEmployees }) {
       </DialogTitle>
       
       <DialogContent>
-        <Box component="form" sx={{ mt: 2 }}>
+        <Box component="form" sx={{ mt: 1 }}>
           
           {/* Legajo y Email (no editables) */}
           <TextField
+            size="small"
             label="Legajo"
             value={employee.legajo}
             disabled
@@ -112,6 +125,7 @@ function EmployeesEditModal({ open, onClose, onSave, employee, allEmployees }) {
             sx={{ mb: 2 }}
           />
           <TextField
+            size="small"
             label="Email"
             value={employee.email}
             disabled
@@ -120,7 +134,7 @@ function EmployeesEditModal({ open, onClose, onSave, employee, allEmployees }) {
           />
 
           {/* Selector de ROL */}
-          <FormControl fullWidth sx={{ mb: 2 }}>
+          <FormControl fullWidth sx={{ mb: 2 }} size="small">
             <InputLabel id="rol-select-label">Rol</InputLabel>
             <Select
               labelId="rol-select-label"
@@ -137,14 +151,14 @@ function EmployeesEditModal({ open, onClose, onSave, employee, allEmployees }) {
 
           {/* Selector de SUPERVISOR */}
           {isAdvisor && (
-            <FormControl fullWidth sx={{ mb: 2 }}>
+            <FormControl fullWidth sx={{ mb: 2 }} size="small">
               <InputLabel id="supervisor-select-label">Supervisor Asignado</InputLabel>
               <Select
                 labelId="supervisor-select-label"
                 name="supervisor_id"
                 value={formData.supervisor_id === null ? 'null' : formData.supervisor_id}
                 label="Supervisor Asignado"
-                onChange={handleChange}
+                onChange={handleChange} 
               >
                 <MenuItem value={'null'}>
                   <em>(Ninguno)</em>
@@ -162,10 +176,10 @@ function EmployeesEditModal({ open, onClose, onSave, employee, allEmployees }) {
       </DialogContent>
       
       <DialogActions sx={{ p: '16px 24px' }}>
-        <Button onClick={onClose} color="inherit">
+        <Button onClick={onClose} color="inherit" size="small">
           Cancelar
         </Button>
-        <Button onClick={handleSave} variant="contained" color="primary">
+        <Button onClick={handleSave} variant="contained" color="primary" size="small">
           Guardar Cambios
         </Button>
       </DialogActions>

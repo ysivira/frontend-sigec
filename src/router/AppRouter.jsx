@@ -6,12 +6,11 @@
  *
  * @description
  * Este componente utiliza `react-router-dom` para gestionar la navegación
- * y renderizar el componente de página correspondiente a la URL actual.
- *
- * Define todas las rutas públicas (como `/login`) y, en el futuro,
- * las rutas privadas (como `/dashboard`). También maneja las
- * redirecciones, como enviar al usuario a `/login` si accede a
-NORMALMENTE * una ruta no definida.
+ * y renderizar el componente de página correspondiente a la URL actual. Define
+ * dos tipos de rutas:
+ * - **Rutas Públicas**: Accesibles sin autenticación (ej: `/login`, `/register`).
+ * - **Rutas Privadas**: Anidadas dentro del `MainLayout`, que actúa como un
+ *   guardián, requiriendo autenticación para acceder a ellas (ej: `/dashboard`).
  */
 
 import React from 'react';
@@ -23,12 +22,20 @@ import ManageEmployeesPage from '../pages/ManageEmployeesPage';
 import RegisterPage from '../pages/RegisterPage';
 import ForgotPasswordPage from '../pages/ForgotPasswordPage';
 import ResetPasswordPage from '../pages/ResetPasswordPage';
+import ConfirmEmailPage from '../pages/ConfirmEmailPage';
 import ManagePlansPage from '../pages/ManagePlansPage';
 import ManagePricesPage from '../pages/ManagePricesPage';
+import QuoterPage from '../pages/quoter/QuoterPage';
+import QuoterListPage from '../pages/quoter/QuoterListPage';
+import ProfilePage from '../pages/ProfilePage';
+import PriceListViewPage from '../pages/PriceListViewPage';
+
 
 /**
- * @file AppRouter.jsx
- * @description Componente que define las rutas de la aplicación.
+ * @component AppRouter
+ * @description Componente principal que define la estructura de navegación de la aplicación,
+ * distinguiendo entre rutas públicas y rutas privadas protegidas que se renderizan
+ * dentro del layout principal.
  * @returns {JSX.Element} El componente del enrutador de la aplicación.
  */
 function AppRouter() {
@@ -38,16 +45,21 @@ function AppRouter() {
       <Route path="/register" element={<RegisterPage />} />
       <Route path="/forgot-password" element={<ForgotPasswordPage />} />
       <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
+      <Route path="/confirm-email/:token" element={<ConfirmEmailPage />} />
 
       <Route path="/" element={<MainLayout />}>
         <Route path="dashboard" element={<DashboardPage />} />
         <Route path="empleados" element={<ManageEmployeesPage />} />
         <Route path="planes" element={<ManagePlansPage />} />
         <Route path="precios" element={<ManagePricesPage />} />
-                
-        <Route index element={<Navigate to="/dashboard" replace />} />
+        <Route path="/cotizador" element={<QuoterPage />} />
+        <Route path="/mis-cotizaciones" element={<QuoterListPage />} />
+        <Route path="/perfil" element={<ProfilePage />} />
+        <Route path="/precios-consulta" element={<PriceListViewPage />} />
+
+        <Route index element={<Navigate to="/login" replace />} />
       </Route>
-    
+
       <Route path="/*" element={<Navigate to="/login" replace />} />
     </Routes>
   );

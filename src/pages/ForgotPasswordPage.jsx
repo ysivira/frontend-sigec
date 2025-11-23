@@ -1,152 +1,165 @@
 //============================================================================
-// PÁGINA DE RECUPERACIÓN DE CONTRASEÑA
+// PÁGINA DE SOLICITUD DE RESTABLECIMIENTO DE CONTRASEÑA
 //============================================================================
 /**
- * @fileoverview Página para solicitar la recuperación de contraseña por email.
+ * @fileoverview Página para la solicitud de restablecimiento de contraseña.
  *
  * @description
- * Permite a cualquier empleado (asesor, admin, supervisor) solicitar un token
- * de restablecimiento de contraseña. El sistema envía un enlace al email
- * asociado para iniciar el flujo de cambio de clave.
+ * Esta página presenta un formulario simple donde el usuario puede ingresar su
+ * dirección de correo electrónico para solicitar un enlace de restablecimiento
+ * de contraseña. Se comunica con el backend y muestra un modal de confirmación
+ * al usuario, informándole que si el correo existe, recibirá el enlace.
  */
-
 import React, { useState } from 'react';
-import axios from 'axios';
-import {
-  Container, Box, Typography, TextField, Button, Grid, Link as MuiLink,
-  CircularProgress
+import { 
+  Box, Button, TextField, Typography, Paper, Link, 
+  Dialog, DialogContent, DialogActions, DialogTitle 
 } from '@mui/material';
-import { Link, useNavigate } from 'react-router-dom';
-import SigecLogo from '../assets/sigec_logo.png';
+import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import apiClient from '../api/axiosConfig';
+import logo from '../assets/sigec_logo.png'; 
+import LoadingScreen from '../components/common/LoadingScreen';
 
 /**
- * @description Componente de la página de "Olvidé mi Contraseña".
- * @returns {JSX.Element} La página de solicitud de recuperación.
+ * @component ForgotPasswordPage
+ * @description Componente de página que renderiza el formulario para solicitar el restablecimiento de contraseña.
+ * Maneja el estado del formulario, la comunicación con la API y la visualización de un
+ * modal de confirmación tras el envío.
+ * @returns {JSX.Element}
  */
 function ForgotPasswordPage() {
-  // --- ESTADOS LOCALES ---
+  const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
-  const [errorMsg, setErrorMsg] = useState('');
-  const navigate = useNavigate();
+  const [openModal, setOpenModal] = useState(false);
 
-  // --- HANDLERS ---
-  
-  /**
-   * Maneja el envío del formulario para solicitar el token de restablecimiento.
-   * @param {object} event - Evento del formulario.
-   */
-  const handleSubmit = async (event) => {
-    event.preventDefault();
-    setErrorMsg('');
+  const handleSubmit = async (e) => {
+    e.preventDefault();
     setLoading(true);
-    
-    // URL del endpoint de recuperación 
-    const API_URL = 'http://localhost:5000/api/employees/forgot-password';
-
     try {
-      await axios.post(API_URL, { email });
-      
-      // Feedback exitoso (no revela si el email existe por seguridad)
-      toast.success('Si el email existe, recibirás un enlace para resetear tu clave.');
-      navigate('/login');
+      await apiClient.post('/employees/forgot-password', { email });
+      setOpenModal(true);
     } catch (error) {
-      console.error("Error al solicitar recuperación:", error);
-      if (error.response) {
-        setErrorMsg(error.response.data.message || 'Error al procesar la solicitud.');
-      } else {
-        setErrorMsg('Error de conexión. Intente más tarde.');
-      }
+      const msg = error.response?.data?.message || 'Error al procesar solicitud';
+      toast.error(msg);
     } finally {
       setLoading(false);
     }
   };
 
+  const handleCloseModal = () => {
+    setOpenModal(false);
+    navigate('/login');
+  };
+
+  if (loading) return <LoadingScreen message="Enviando solicitud..." />;
+
   return (
-    <Container 
-      component="main" 
-      maxWidth="100%" 
-      sx={{ 
-        minHeight: '100vh', 
-        backgroundColor: 'background.default', 
-        display: 'flex', 
-        flexDirection: 'column', 
-        alignItems: 'center', 
-        justifyContent: 'center', 
-        py: 4 
+    <Box
+      sx={{
+        height: '100vh',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        bgcolor: 'background.default',
+        overflow: 'hidden'
       }}
     >
-      {/* Logo */}
-      <Box sx={{ mb: 4, maxWidth: '250px' }}>
-        <img src={SigecLogo} alt="Logo SIGEC" style={{ width: '100%', height: 'auto' }} />
+      <Box sx={{ mb: 2 }}>
+        <img src={logo} alt="SIGEC Logo" style={{ width: '150px', height: 'auto' }} />
       </Box>
 
-      {/* Formulario de Recuperación */}
-      <Box sx={{ 
-        display: 'flex', 
-        flexDirection: 'column', 
-        alignItems: 'center', 
-        backgroundColor: 'background.paper', 
-        padding: 4, 
-        borderRadius: 2, 
-        boxShadow: 8, 
-        maxWidth: '450px', 
-        width: '100%' 
-      }}>
-        <Typography component="h1" variant="h5" sx={{ mb: 2 }}>
+      <Paper
+        elevation={4}
+        sx={{
+          p: 3,
+          width: '100%',
+          maxWidth: 320,
+          borderRadius: 3,
+          bgcolor: '#F8F9FA',
+        }}
+      >
+        <Typography variant="h6" align="center" sx={{ mb: 1, fontWeight: 'bold', color: '#0D47A1' }}>
           Recuperar Contraseña
         </Typography>
-        <Typography variant="body2" sx={{ mb: 2, textAlign: 'center' }}>
-          Ingresa tu email y te enviaremos un enlace para reestablecer tu contraseña.
+        
+        <Typography variant="caption" display="block" align="center" color="textSecondary" sx={{ mb: 3, lineHeight: 1.4 }}>
+          Ingresa tu email y te enviaremos un enlace para restablecer tu clave.
         </Typography>
 
-        <Box component="form" onSubmit={handleSubmit} sx={{ mt: 1, width: '100%' }}>
+        <Box component="form" onSubmit={handleSubmit}>
           <TextField
-            margin="normal" 
-            required 
-            fullWidth 
-            id="email" 
             label="Email"
-            name="email" 
-            type="email" 
-            autoFocus 
+            type="email"
             value={email}
-            onChange={(e) => {
-              setEmail(e.target.value);
-              setErrorMsg(''); 
-            }}
+            onChange={(e) => setEmail(e.target.value)}
+            fullWidth
+            required
+            autoFocus
+            size="small"
+            margin="dense"
+            placeholder="ejemplo@email.com"
           />
 
-          {/* Mensaje de Error */}
-          {errorMsg && (
-            <Typography color="error" variant="body2" sx={{ mt: 2, textAlign: 'center' }}>
-              {errorMsg}
-            </Typography>
-          )}
-
-          {/* Botón de Envío */}
           <Button
-            type="submit" 
-            fullWidth 
+            type="submit"
+            fullWidth
             variant="contained"
-            sx={{ mt: 3, mb: 2 }} 
-            disabled={loading}
+            size="medium"
+            sx={{ mt: 3, mb: 2, borderRadius: 2 }}
           >
-            {loading ? <CircularProgress size={24} /> : 'Enviar Enlace'}
+            ENVIAR ENLACE
           </Button>
 
-          {/* Enlace de Retorno */}
-          <Grid container justifyContent="center">
-            <Grid item>
-              <MuiLink component={Link} to="/login" variant="body2" color="primary">
+          <Box textAlign="center">
+             <Link 
+                component="button" 
+                variant="caption" 
+                onClick={() => navigate('/login')} 
+                underline="hover"
+                color="primary"
+                type="button"
+             >
                 Volver a Iniciar Sesión
-              </MuiLink>
-            </Grid>
-          </Grid>
+             </Link>
+          </Box>
         </Box>
-      </Box>
-    </Container>
+      </Paper>
+
+      <Dialog 
+        open={openModal} 
+        onClose={handleCloseModal} 
+        PaperProps={{ sx: { maxWidth: '320px', borderRadius: 2, m: 2 } }}
+      >
+        <DialogTitle sx={{ 
+            bgcolor: '#A5D6A7', color: '#1b5e20', 
+            py: 1, px: 2, display: 'flex', alignItems: 'center', gap: 1,
+            fontSize: '1rem' 
+        }}>
+            <CheckCircleIcon fontSize="small" />
+            <Typography variant="subtitle1" fontWeight="bold">Solicitud Enviada</Typography>
+        </DialogTitle>
+        
+        <DialogContent sx={{ mt: 2, px: 2, pb: 1 }}>
+            <Typography variant="body2" sx={{ color: '#333', mb: 1 }}>
+                Hemos procesado tu solicitud.
+            </Typography>
+            <Typography variant="caption" color="text.secondary" sx={{ lineHeight: 1.4, display: 'block' }}>
+                Si el correo <strong>{email}</strong> existe, recibirás un enlace en breve.
+            </Typography>
+        </DialogContent>
+        
+        <DialogActions sx={{ p: 2, pt: 0 }}>
+            <Button onClick={handleCloseModal} variant="contained" color="success" size="small" fullWidth>
+                Volver al Login
+            </Button>
+        </DialogActions>
+      </Dialog>
+
+    </Box>
   );
 }
 

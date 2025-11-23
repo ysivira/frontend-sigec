@@ -5,118 +5,118 @@
  * @fileoverview Página principal ("Smart Component") para la administración de empleados.
  *
  * @description
- * Este componente actúa como el controlador de la vista de empleados. Sus responsabilidades son:
- * 1. Obtener la lista completa de empleados desde la API.
- * 2. Gestionar el estado local de la UI (carga, paginación, filtros).
- * 3. Implementar la lógica de filtrado de negocio (texto + estado, incluyendo "pendiente").
- * 4. Orquestar y ejecutar las operaciones CRUD (Edición, Activación/Inactivación) mediante modales.
- * 
+ * Este componente actúa como el controlador de la vista de gestión de empleados.
+ * Sus responsabilidades incluyen obtener la lista completa de empleados desde la API,
+ * gestionar el estado local de la UI (carga, paginación, filtros), implementar la
+ * lógica de filtrado de negocio (incluyendo un estado "pendiente" para cuentas
+ * no confirmadas) y orquestar las operaciones de edición y cambio de estado
+ * a través de componentes modales.
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { useAuth } from '../context/AuthContext';
 import apiClient from '../api/axiosConfig';
 import {
   Typography,
   Box,
   Alert,
+  Container, 
+  Paper
 } from '@mui/material';
-import { toast } from 'react-hot-toast';
-
-// IMPORTACIÓN DE MICRO-COMPONENTES (PRESENTACIONALES) 
 import LoadingScreen from '../components/common/LoadingScreen';
 import EmployeesSearchBar from '../components/admin/EmployeesSearchBar';
 import EmployeesTable from '../components/admin/EmployeesTable';
 import EmployeesEditModal from '../components/admin/EmployeesEditModal';
 import ConfirmDialog from '../components/common/ConfirmDialog';
 
+const initialDialogState = {
+  open: false,
+  title: '',
+  message: '',
+  variant: 'info',
+  confirmText: 'Aceptar',
+  showCancel: false,
+  onConfirm: () => {},
+};
+
 /**
- * @description Componente contenedor para la gestión de empleados.
+ * @component ManageEmployeesPage
+ * @description Componente de página que orquesta la visualización, filtrado y gestión de empleados.
+ * Maneja el estado de los datos, la paginación y la interacción con los modales de edición
+ * y confirmación.
  * @returns {JSX.Element} Página completa de gestión de empleados.
  */
 function ManageEmployeesPage() {
+  const { logout } = useAuth();
   // ESTADOS DE DATOS Y CARGA
-
-  /** @type {[Array<Object>, Function]} Lista completa de empleados traída de la API. */
   const [allEmployees, setAllEmployees] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-
-  // PAGINACIÓN 
   const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(6);
-  
-  // FILTROS 
-  /** @type {[string, Function]} Texto ingresado en el buscador. */
+  const [rowsPerPage, setRowsPerPage] = useState(10); 
   const [filter, setFilter] = useState('');
-  /** @type {[string, Function]} Estado seleccionado en el dropdown ('todos', 'activo', 'pendiente', 'inactivo'). */
-  const [statusFilter, setStatusFilter] = useState('todos'); 
-
-  // MODALES Y CONFIRMACIÓN
+  const [statusFilter, setStatusFilter] = useState('todos');
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  /** @type {[Object|null, Function]} Objeto del empleado siendo editado. */
   const [editingEmployee, setEditingEmployee] = useState(null);
-  const [confirmOpen, setConfirmOpen] = useState(false);
-  /** @type {[Function|null, Function]} La acción asíncrona a ejecutar tras la confirmación. */
-  const [confirmAction, setConfirmAction] = useState(null);
-  const [confirmTitle, setConfirmTitle] = useState('');
-  const [confirmMessage, setConfirmMessage] = useState('');
+  const [dialogState, setDialogState] = useState(initialDialogState);
+
+  // MANEJO DEL DIÁLOGO
+  
+  const closeDialog = useCallback(() => {
+    setDialogState(prev => ({ ...prev, open: false }));
+  }, []);
+
+  const showDialog = useCallback((config) => {
+    setDialogState({
+      ...initialDialogState,
+      ...config,
+      open: true,
+      onConfirm: config.onConfirm ? () => { config.onConfirm(); closeDialog(); } : closeDialog,
+    });
+  }, [closeDialog]);
 
   // EFECTOS
 
-  /**
-   * @effect Carga inicial de empleados.
-   * Se ejecuta una sola vez al montar el componente.
-   */
   useEffect(() => {
     const fetchEmployees = async () => {
       try {
         setLoading(true);
         setError(null);
         const response = await apiClient.get('/employees');
-        // Simulación de carga (mantenida para ver el LoadingScreen)
-        await new Promise(resolve => setTimeout(resolve, 1500)); 
+        await new Promise(resolve => setTimeout(resolve, 1000)); 
         setAllEmployees(response.data);
       } catch (err) {
+        if (err.response && err.response.status === 401) {
+          logout();
+          return;
+        }
         const errorMsg = err.response?.data?.message || err.message;
         setError('Error al cargar empleados: ' + errorMsg);
-        toast.error('Error al cargar empleados: ' + errorMsg);
+        showDialog({
+          title: 'Error de Carga',
+          message: `No se pudieron obtener los empleados. ${errorMsg}`,
+          variant: 'error',
+        });
       } finally {
         setLoading(false);
       }
     };
     fetchEmployees();
-  }, []);
+  }, [showDialog, logout]);
 
   // LÓGICA DE NEGOCIO (FILTROS)
     
-  /**
-   * Determina el estado lógico/visual del empleado para el frontend.
-   * Mapea (inactivo + no confirmado) a "pendiente".
-   * @param {Object} emp - Objeto empleado.
-   * @returns {string} 'pendiente' | 'inactivo' | 'activo'
-   */
   const getEmployeeDisplayStatus = (emp) => {
     if (emp.estado === 'inactivo' && emp.email_confirmado === 0) return 'pendiente';
     if (emp.estado === 'inactivo' && emp.email_confirmado === 1) return 'inactivo';
     return emp.estado; 
   };
 
-  /**
-   * Lista filtrada de empleados, aplicando lógica de búsqueda de texto y filtro de estado.
-   */
   const filteredEmployees = allEmployees.filter((emp) => {
-    
     const displayStatus = getEmployeeDisplayStatus(emp);
-    
-    // Filtro de Estado (Dropdown)
-    if (statusFilter !== 'todos' && displayStatus !== statusFilter) {
-      return false;
-    }
-
-    // Filtro de Texto (Búsqueda)
+    if (statusFilter !== 'todos' && displayStatus !== statusFilter) return false;
     const searchTerm = filter.toLowerCase();
     if (searchTerm === '') return true;
-
     return (
       emp.legajo.toString().toLowerCase().includes(searchTerm) ||
       emp.nombre.toLowerCase().includes(searchTerm) ||
@@ -129,61 +129,47 @@ function ManageEmployeesPage() {
 
   // HANDLERS (PAGINACIÓN, FILTROS, MODALES)
 
-  /** @handler Maneja el cambio de página en la tabla. */
   const handleChangePage = (event, newPage) => setPage(newPage);
   
-  /** @handler Maneja el cambio de filas por página. */
   const handleChangeRowsPerPage = (event) => {
     setRowsPerPage(parseInt(event.target.value, 10));
     setPage(0);
   };
 
-  /** @handler Actualiza el filtro de texto y reinicia la paginación. */
   const handleFilterChange = (event) => {
     setFilter(event.target.value);
     setPage(0);
   };
 
-  /** @handler Actualiza el filtro de estado (dropdown) y reinicia la paginación. */
   const handleStatusChange = (event) => {
     setStatusFilter(event.target.value);
     setPage(0);
   };
 
-  /**
-   * @handler Abre el modal de edición.
-   * @param {number} legajo - ID del empleado.
-   */
   const handleEdit = (legajo) => {
     const employeeToEdit = allEmployees.find(emp => emp.legajo === legajo);
     if (employeeToEdit) {
       setEditingEmployee(employeeToEdit);
       setIsEditModalOpen(true);
     } else {
-      toast.error('Error: Empleado no encontrado.');
+      showDialog({
+        title: 'Error',
+        message: 'No se encontró el empleado para editar.',
+        variant: 'error',
+      });
     }
   };
   
-  /** @handler Cierra el modal de edición. */
   const handleCloseModal = () => {
     setIsEditModalOpen(false);
     setTimeout(() => setEditingEmployee(null), 300); 
   };
 
-  /**
-   * @handler Envía la actualización del empleado (rol/supervisor) al backend (PUT).
-   * @param {Object} updatedData - Datos actualizados.
-   */
   const handleSaveModal = async (updatedData) => {
     const originalEmployees = [...allEmployees];
     const legajoToUpdate = updatedData.legajo;
 
-    // Actualización Optimista
-    setAllEmployees(prevEmployees =>
-      prevEmployees.map(emp =>
-        emp.legajo === legajoToUpdate ? updatedData : emp
-      )
-    );
+    setAllEmployees(prev => prev.map(emp => emp.legajo === legajoToUpdate ? updatedData : emp));
     handleCloseModal();
 
     try {
@@ -191,69 +177,72 @@ function ManageEmployeesPage() {
         rol: updatedData.rol,
         supervisor_id: updatedData.supervisor_id,
       });
-      toast.success(`Empleado #${legajoToUpdate} actualizado.`);
+      showDialog({
+        title: 'Éxito',
+        message: `Empleado #${legajoToUpdate} actualizado correctamente.`,
+        variant: 'success',
+        confirmText: 'Entendido'
+      });
     } catch (err) {
-      setAllEmployees(originalEmployees); // Rollback si falla
+      if (err.response && err.response.status === 401) {
+        logout();
+        return;
+      }
+      setAllEmployees(originalEmployees);
       const errorMsg = err.response?.data?.message || err.message;
-      toast.error(`Error al actualizar: ${errorMsg}`);
+      showDialog({
+        title: 'Error de Actualización',
+        message: `No se pudo actualizar el empleado. ${errorMsg}`,
+        variant: 'error',
+      });
     }
   };
 
-  /**
-   * @handler Inicia el flujo de confirmación para cambiar el estado (Activar/Inactivar).
-   * @param {number} legajo - ID del empleado.
-   * @param {string} newStatus - Nuevo estado ('activo' | 'inactivo').
-   */
   const handleToggleStatus = (legajo, newStatus) => {
     const title = newStatus === 'activo' ? 'Reactivar Empleado' : 'Desactivar Empleado';
     const message = `¿Estás seguro de que deseas poner al empleado #${legajo} como ${newStatus}?`;
 
-    // Acción diferida (se ejecuta al confirmar)
     const action = async () => {
       const originalEmployees = [...allEmployees];
-      
-      // Actualización Optimista
-      setAllEmployees(prevEmployees =>
-        prevEmployees.map(emp =>
+      setAllEmployees(prev =>
+        prev.map(emp =>
           emp.legajo === legajo ? { ...emp, estado: newStatus, email_confirmado: 1 } : emp 
         )
       );
       
       try {
         await apiClient.put(`/employees/${legajo}`, { estado: newStatus });
-        toast.success(`Empleado #${legajo} actualizado a "${newStatus}".`);
+        showDialog({
+          title: 'Estado Actualizado',
+          message: `Empleado #${legajo} se ha marcado como ${newStatus}.`,
+          variant: 'success',
+          confirmText: 'Entendido'
+        });
       } catch (err) {
-        setAllEmployees(originalEmployees); // Rollback
+        if (err.response && err.response.status === 401) {
+          logout();
+          return;
+        }
+        setAllEmployees(originalEmployees);
         const errorMsg = err.response?.data?.message || err.message;
-        toast.error(`Error actualizando #${legajo}.`);
+        showDialog({
+          title: 'Error al Actualizar Estado',
+          message: `No se pudo cambiar el estado del empleado #${legajo}. ${errorMsg}`,
+          variant: 'error',
+        });
       }
-      setConfirmOpen(false);
     };
 
-    setConfirmTitle(title);
-    setConfirmMessage(message);
-    setConfirmAction(() => action); 
-    setConfirmOpen(true);
+    showDialog({
+      title,
+      message,
+      variant: newStatus === 'activo' ? 'info' : 'warning',
+      confirmText: 'Confirmar',
+      showCancel: true,
+      onConfirm: action,
+    });
   };
   
-  /** @handler Cierra el modal de confirmación y limpia los estados. */
-  const handleCloseConfirm = () => {
-    setConfirmOpen(false);
-    setTimeout(() => {
-      setConfirmAction(null);
-      setConfirmTitle('');
-      setConfirmMessage('');
-    }, 300);
-  };
-  
-  /** @handler Ejecuta la acción guardada en el estado 'confirmAction'. */
-  const handleDoConfirm = () => {
-    if (confirmAction) {
-      confirmAction(); 
-    }
-    handleCloseConfirm();
-  };
-
   // RENDERIZADO 
 
   if (loading) return <LoadingScreen message="Cargando empleados..." />;
@@ -261,11 +250,10 @@ function ManageEmployeesPage() {
 
   return (
     <Box>
-      <Typography variant="h4" gutterBottom>
+      <Typography variant="h4" gutterBottom sx={{ color: 'primary.contrastText' }}>
         Gestión de Empleados
       </Typography>
 
-      {/* Barra de Filtros */}
       <EmployeesSearchBar
         filter={filter}
         onFilterChange={handleFilterChange}
@@ -273,7 +261,6 @@ function ManageEmployeesPage() {
         onStatusChange={handleStatusChange}
       />
 
-      {/* Tabla */}
       <EmployeesTable
         employees={filteredEmployees}
         page={page}
@@ -284,7 +271,6 @@ function ManageEmployeesPage() {
         onToggleStatus={handleToggleStatus}
       />
 
-      {/* Modales */}
       <EmployeesEditModal
         open={isEditModalOpen}
         onClose={handleCloseModal}
@@ -294,11 +280,14 @@ function ManageEmployeesPage() {
       />
 
       <ConfirmDialog
-        open={confirmOpen}
-        onClose={handleCloseConfirm}
-        onConfirm={handleDoConfirm}
-        title={confirmTitle}
-        message={confirmMessage}
+        open={dialogState.open}
+        onClose={closeDialog}
+        onConfirm={dialogState.onConfirm}
+        title={dialogState.title}
+        message={dialogState.message}
+        variant={dialogState.variant}
+        confirmText={dialogState.confirmText}
+        showCancel={dialogState.showCancel}
       />
     </Box>
   );

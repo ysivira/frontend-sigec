@@ -5,25 +5,34 @@
  * @fileoverview Página contenedora para administrar los Planes de Cobertura.
  *
  * @description
- * - Carga la lista completa de planes (Activos e Inactivos) [GET /plans].
- * - Maneja la lógica de Crear [POST /plans], Editar [PUT /plans/:id] y
- * Desactivar [DELETE /plans/:id].
- * - Orquesta los micro-componentes PlansTable y PlanEditModal.
+ * Esta página actúa como el controlador principal para la gestión de planes.
+ * Se encarga de obtener la lista completa de planes desde la API, manejar la
+ * lógica para crear, editar y desactivar planes, y orquestar los componentes
+ * de la interfaz de usuario como la tabla de planes y los modales de edición
+ * y confirmación.
  */
 
 import React, { useState, useEffect } from 'react';
 import apiClient from '../api/axiosConfig';
+import { useAuth } from '../context/AuthContext';
 import {
-  Typography, Box, CircularProgress, Alert, Button
+  Typography, Box, Alert, Button, Paper
 } from '@mui/material';
-import { toast } from 'react-hot-toast';
 import AddIcon from '@mui/icons-material/Add';
 import LoadingScreen from '../components/common/LoadingScreen';
 import PlansTable from '../components/admin/PlansTable';
 import PlanEditModal from '../components/admin/PlanEditModal';
 import ConfirmDialog from '../components/common/ConfirmDialog';
 
+/**
+ * @component ManagePlansPage
+ * @description Componente de página que orquesta la visualización y gestión de los planes de cobertura.
+ * Maneja el estado de los datos, la comunicación con la API y la interacción con los modales
+ * de creación, edición y confirmación.
+ * @returns {JSX.Element}
+ */
 function ManagePlansPage() {
+  const { logout } = useAuth();
   // --- ESTADO ---
   const [plans, setPlans] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -38,26 +47,35 @@ function ManagePlansPage() {
   const [confirmAction, setConfirmAction] = useState(null);
   const [confirmMessage, setConfirmMessage] = useState('');
 
+  // Estado para el diálogo de notificación 
+  const [notification, setNotification] = useState({
+    isOpen: false,
+    title: '',
+    message: '',
+    variant: 'info',
+  });
+
   useEffect(() => {
     const fetchPlans = async () => {
       try {
         setLoading(true);
         setError(null);
 
-        // Petición a la API
         const apiPromise = apiClient.get('/plans');
-        
-        // Temporizador de la animación (2000ms)
-        const timerPromise = new Promise(resolve => setTimeout(resolve, 2000));
+        const timerPromise = new Promise(resolve => setTimeout(resolve, 1500));
 
-        // Esperamos a que ambas terminen
         const [response] = await Promise.all([apiPromise, timerPromise]);
         
         setPlans(response.data);
       } catch (err) {
         const errorMsg = err.response?.data?.message || 'Error de conexión';
         setError('Error al cargar los planes: ' + errorMsg);
-        toast.error('No se pudieron cargar los planes');
+        setNotification({
+          isOpen: true,
+          title: 'Error de Carga',
+          message: 'No se pudieron cargar los planes. ' + errorMsg,
+          variant: 'error'
+        });
       } finally {
         setLoading(false);
       }
@@ -80,7 +98,6 @@ function ManagePlansPage() {
 
   const handleCloseModal = () => {
     setIsEditModalOpen(false);
-    // Limpiamos el plan seleccionado después de cerrar
     setTimeout(() => setEditingPlan(null), 300); 
   };
 
@@ -100,20 +117,34 @@ function ManagePlansPage() {
           activo: 1 
         };
         setPlans([newPlan, ...plans]);
-        toast.success('Plan creado exitosamente.');
+        setNotification({
+          isOpen: true,
+          title: 'Éxito',
+          message: 'Plan creado exitosamente.',
+          variant: 'success'
+        });
       } else {
-
-        // ACTUALIZAR 
         setPlans(prev => prev.map(p => p.id === formData.id ? { ...p, ...formData } : p));
-        
         await apiClient.put(`/plans/${formData.id}`, formData);
-        toast.success('Plan actualizado.');
+        setNotification({
+          isOpen: true,
+          title: 'Éxito',
+          message: 'Plan actualizado correctamente.',
+          variant: 'success'
+        });
       }
     } catch (err) {
-      // Revertimos si falla
       setPlans(originalPlans);
+      // Si el error es de autenticación (token expirado), cerramos sesión.
+      if (err.response && err.response.status === 401) {
+        logout();
+        return; 
+      }
+
       const errorMsg = err.response?.data?.message || err.message;
-      toast.error(`Error al guardar: ${errorMsg}`);
+      setNotification({
+        isOpen: true, title: 'Error', message: `Error al guardar: ${errorMsg}`, variant: 'error'
+      });
     }
   };
 
@@ -127,10 +158,27 @@ function ManagePlansPage() {
       
       try {
         await apiClient.delete(`/plans/${plan.id}`);
-        toast.success('Plan desactivado exitosamente.');
+        setNotification({
+          isOpen: true,
+          title: 'Plan Desactivado',
+          message: `El plan "${plan.nombre}" ha sido desactivado.`,
+          variant: 'success'
+        });
       } catch (err) {
-        setPlans(originalPlans); // Revertir
-        toast.error('Error al desactivar el plan.');
+        setPlans(originalPlans);
+        // Si el error es de autenticación (token expirado), cerramos sesión.
+        if (err.response && err.response.status === 401) {
+          logout();
+          return; 
+        }
+
+        const errorMsg = err.response?.data?.message || 'Error desconocido.';
+        setNotification({
+          isOpen: true,
+          title: 'Error',
+          message: `No se pudo desactivar el plan. ${errorMsg}`,
+          variant: 'error'
+        });
       }
       setConfirmOpen(false);
     });
@@ -147,30 +195,33 @@ function ManagePlansPage() {
   if (error) return <Alert severity="error">{error}</Alert>;
 
   return (
-    <Box>
-      {/* Encabezado */}
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-        <Typography variant="h4" color="primary.contrastText">
-          Planes de Cobertura
-        </Typography>
-        <Button
-          variant="contained"
-          color="secondary"
-          startIcon={<AddIcon />}
-          onClick={handleOpenCreate}
-        >
-          Nuevo Plan
-        </Button>
-      </Box>
+    <Box sx={{ p: 2, display: 'flex', justifyContent: 'center' }}>
+      <Paper sx={{ p: 3, borderRadius: 2, width: '100%', maxWidth: '1200px' }}>
+        {/* Encabezado */}
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+          <Typography variant="h5" color="primary">
+            Planes de Cobertura
+          </Typography>
+          <Button
+            variant="contained"
+            color="secondary"
+            startIcon={<AddIcon />}
+            onClick={handleOpenCreate}
+            size="small"
+          >
+            Nuevo Plan
+          </Button>
+        </Box>
 
-      {/* Tabla (Micro-componente) */}
-      <PlansTable
-        plans={plans}
-        onEdit={handleEdit}
-        onDelete={handleDelete}
-      />
+        {/* Tabla */}
+        <PlansTable
+          plans={plans}
+          onEdit={handleEdit}
+          onDelete={handleDelete}
+        />
+      </Paper>
 
-      {/* Modal de Edición (Micro-componente) */}
+      {/* Modal de Edición  */}
       <PlanEditModal
         open={isEditModalOpen}
         onClose={handleCloseModal}
@@ -178,13 +229,25 @@ function ManagePlansPage() {
         plan={editingPlan}
       />
 
-      {/* Diálogo de Confirmación (Componente común) */}
+      {/* Diálogo de Confirmación  */}
       <ConfirmDialog
         open={confirmOpen}
         onClose={() => setConfirmOpen(false)}
         onConfirm={confirmAction}
         title="Confirmar Desactivación"
         message={confirmMessage}
+      />
+
+      {/* Diálogo de Notificación */}
+      <ConfirmDialog
+        open={notification.isOpen}
+        onClose={() => setNotification({ ...notification, isOpen: false })}
+        onConfirm={() => setNotification({ ...notification, isOpen: false })}
+        title={notification.title}
+        message={notification.message}
+        variant={notification.variant}
+        showCancel={false}
+        confirmText="Aceptar"
       />
     </Box>
   );

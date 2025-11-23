@@ -108,8 +108,8 @@ function PlanEditModal({ open, onClose, onSave, plan }) {
       </DialogContent>
       
       <DialogActions sx={{ p: 2 }}>
-        <Button onClick={onClose} color="inherit">Cancelar</Button>
-        <Button onClick={handleSubmit} variant="contained" color="primary">
+        <Button onClick={onClose} color="inherit" size="small">Cancelar</Button>
+        <Button onClick={handleSubmit} variant="contained" color="primary" size="small">
           {isEditing ? 'Guardar Cambios' : 'Crear Plan'}
         </Button>
       </DialogActions>

@@ -30,9 +30,7 @@ import ConfirmDialog from '../components/common/ConfirmDialog';
  */
 function GestionPreciosPage() {
     // ESTADOS DE DATOS
-    /** @type {[Array<Object>, Function]} Lista de todos los planes disponibles. */
     const [allPlans, setAllPlans] = useState([]); 
-    /** @type {[Array<Object>, Function]} Entradas de precio para el filtro actual. */
     const [priceEntries, setPriceEntries] = useState([]); 
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -74,7 +72,6 @@ function GestionPreciosPage() {
 
     /**
      * @effect Carga inicial de planes y selección del plan por defecto.
-     * Nota: Este effect corre solo una vez al montar, sin depender de refreshTrigger.
      */
     useEffect(() => {
         const fetchInitialData = async () => {

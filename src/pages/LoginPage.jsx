@@ -1,227 +1,198 @@
 //============================================================================
-// PÁGINA DE INICIO DE SESIÓN (LOGIN)
+// PÁGINA DE INICIO DE SESIÓN (LOGIN) 
 //============================================================================
 /**
  * @fileoverview Página de inicio de sesión para SIGEC.
- * Se conecta con Register y ForgotPassword.
+ *
+ * @description
+ * Componente de página que renderiza el formulario de inicio de sesión. Se encarga
+ * de capturar las credenciales del usuario (legajo y contraseña), interactuar
+ * con el `AuthContext` para realizar la autenticación y manejar los diferentes
+ * estados de la UI (carga, errores). Incluye una lógica específica para notificar
+ * al usuario si su cuenta está pendiente de activación por un administrador.
  */
-
 import React, { useState } from 'react';
-import axios from 'axios';
-import {
-  Container, Box, Typography, TextField, Button, Grid, Link,
-  IconButton, InputAdornment,
-  Checkbox, FormControlLabel
-} from '@mui/material';
+import { Box, Button, TextField, Typography, Paper, Checkbox, FormControlLabel, Link } from '@mui/material';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import { toast } from 'react-hot-toast';
 import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
-import { Link as RouterLink } from 'react-router-dom'; 
-import { useAuth } from '../context/AuthContext.jsx';
-import SigecLogo from '../assets/sigec_logo.png';
+import IconButton from '@mui/material/IconButton';
+import InputAdornment from '@mui/material/InputAdornment';
+import logo from '../assets/sigec_logo.png'; 
+import ConfirmDialog from '../components/common/ConfirmDialog';
 
+/**
+ * @component LoginPage
+ * @description Renderiza el formulario de inicio de sesión, maneja la entrada del usuario, la visibilidad de la contraseña y la lógica de envío.
+ * Utiliza el `useAuth` hook para la autenticación y muestra un diálogo específico si la cuenta del usuario está inactiva o pendiente de activación.
+ * @returns {JSX.Element}
+ */
 function LoginPage() {
-  const [legajo, setLegajo] = useState('');
-  const [password, setPassword] = useState('');
+  const navigate = useNavigate();
+  const { login } = useAuth();  
+  const [formData, setFormData] = useState({ legajo: '', password: '' });
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
-  const [errorMsg, setErrorMsg] = useState('');
-  const { login } = useAuth();
-  const handleClickShowPassword = () => setShowPassword((show) => !show);
 
-  const handleMouseDownPassword = (event) => {
-    event.preventDefault();
+  // Estado para controlar el Modal de "Cuenta Inactiva"
+  const [showInactiveDialog, setShowInactiveDialog] = useState(false);
+
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleRememberMeChange = (event) => {
-    setRememberMe(event.target.checked);
-  };
-
-  const handleSubmit = async (event) => {
-    event.preventDefault();
-    setErrorMsg('');
-    const API_URL = 'http://localhost:5000/api/employees/login';
-    const payload = { legajo: legajo, password: password };
-
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
     try {
-      const response = await axios.post(API_URL, payload);
-      login(response.data, rememberMe);
+      await login(formData.legajo, formData.password, rememberMe);
+      // Si el login es exitoso, el AuthContext redirige, así que no hacemos nada más aquí.
     } catch (error) {
-      console.error("¡ERROR EN EL LOGIN!", error);
+      // Extraemos el mensaje y el código de estado del error
+      const status = error.response?.status;
+      const errorMessage = error.response?.data?.message || error.message || 'Error desconocido';
 
-      if (error.response) {
-        if (error.response.status === 429) {
-          setErrorMsg(error.response.data.message || 'Demasiados intentos. Por favor, espere 10 minutos.');
-        } else if (error.response.status === 401) {
-          setErrorMsg(error.response.data.message || 'Credenciales incorrectas');
-        } else if (error.response.status === 400) {
-          setErrorMsg(error.response.data.message || 'Datos de ingreso inválidos.');
-        } else {
-          setErrorMsg('Error interno del servidor. Intente más tarde.');
-        }
-      } else if (error.code === 'ERR_NETWORK') {
-        setErrorMsg('Error de conexión. El servidor no responde.');
+      // LÓGICA DE INTERCEPCIÓN:
+      // Si es error 401 Y el mensaje dice "inactiva" o "pendiente" (según tu controller)
+      if (status === 401 && (errorMessage.includes('inactiva') || errorMessage.includes('pendiente'))) {
+        setShowInactiveDialog(true);
       } else {
-        setErrorMsg('Error desconocido al iniciar sesión.');
+        toast.error(errorMessage);
       }
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <Container
-      component="main"
-      maxWidth="100%"
+    <Box
       sx={{
-        minHeight: '100vh',
-        backgroundColor: 'background.default',
+        height: '100vh', 
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        py: 4,
+        bgcolor: 'background.default',
+        overflow: 'hidden' 
       }}
     >
       {/* LOGO */}
-      <Box sx={{ mb: 4, maxWidth: '250px' }}>
-        <img src={SigecLogo} alt="Logo SIGEC" style={{ width: '100%', height: 'auto' }} />
+      <Box sx={{ mb: 2 }}>
+        <img src={logo} alt="SIGEC Logo" style={{ width: '150px', height: 'auto' }} />
       </Box>
 
-      {/* FORMULARIO */}
-      <Box
+      {/* TARJETA */}
+      <Paper
+        elevation={4}
         sx={{
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          backgroundColor: 'background.paper',
-          padding: 4,
-          borderRadius: 2,
-          boxShadow: 8,
-          maxWidth: '450px',
+          p: 3, 
           width: '100%',
+          maxWidth: 320, 
+          borderRadius: 3,
+          bgcolor: '#F8F9FA',
         }}
       >
-        <Typography component="h1" variant="h5" sx={{ mb: 2 }}>
+        <Typography variant="h6" align="center" sx={{ mb: 1, fontWeight: 'bold', color: '#0D47A1' }}>
           Iniciar Sesión
         </Typography>
 
-        <Box component="form" onSubmit={handleSubmit} sx={{ mt: 1, width: '100%' }}>
-
-         {/* LEGAJO */}
+        <Box component="form" onSubmit={handleSubmit} noValidate>
           <TextField
-            variant='outlined'
-            margin="normal"
-            required
-            fullWidth
-            id="legajo"
             label="Legajo"
             name="legajo"
+            value={formData.legajo}
+            onChange={handleChange}
+            fullWidth
+            required
             autoFocus
-            value={legajo}
-            onChange={(e) => {
-              setLegajo(e.target.value)
-              setErrorMsg('')
-            }}
+            disabled={loading}
+            size="small" 
+            margin="dense"
           />
 
-          {/* CLAVE */} 
           <TextField
-            variant='outlined'
-            margin="normal"
-            required
-            fullWidth
-            name="password"
             label="Clave"
+            name="password"
             type={showPassword ? 'text' : 'password'}
-            id="password"
-            value={password}
-            onChange={(e) => {
-              setPassword(e.target.value)
-              setErrorMsg('')
-            }}
+            value={formData.password}
+            onChange={handleChange}
+            fullWidth
+            required
+            disabled={loading}
+            size="small" 
+            margin="dense"
             InputProps={{
               endAdornment: (
                 <InputAdornment position="end">
                   <IconButton
-                    aria-label="toggle password visibility"
-                    onClick={handleClickShowPassword}
-                    onMouseDown={handleMouseDownPassword}
+                    onClick={() => setShowPassword(!showPassword)}
                     edge="end"
+                    size="small"
                   >
-                    {showPassword ? <VisibilityOff /> : <Visibility />}
+                    {showPassword ? <VisibilityOff fontSize="small" /> : <Visibility fontSize="small" />}
                   </IconButton>
                 </InputAdornment>
               ),
             }}
           />
 
-           {/* MENSAJE DE ERROR*/}
-          {errorMsg && (
-            <Typography
-              color="error"
-              variant="body2"
-              sx={{ mt: 2, textAlign: 'center' }}
-            >
-              {errorMsg}
-            </Typography>
-          )}
-
-           {/* BTN INGRESAR*/}
           <Button
             type="submit"
             fullWidth
             variant="contained"
-            sx={{ mt: 3, mb: 2 }}
+            size="small" 
+            sx={{ mt: 2, mb: 1, borderRadius: 2 }}
+            disabled={loading}
           >
-            Ingresar
+            {loading ? '...' : 'INGRESAR'}
           </Button>
 
-          <Grid container justifyContent="space-between" alignItems="center">
-
-            {/* Checkbox */}
-            <Grid item>
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    value="remember"
-                    color="primary"
-                    checked={rememberMe}
-                    onChange={handleRememberMeChange}
-                  />
-                }
-                label="Recuérdame"
-                sx={{ '& .MuiTypography-root': { fontSize: '0.875rem' } }}
-              />
-            </Grid>
-
-            {/* 2. ENLACE: OLVIDÉ MI CONTRASEÑA */}
-            <Grid item>
-              <Link 
-                component={RouterLink} 
-                to="/forgot-password" 
-                variant="body2" 
-                color="primary"
+          <Box display="flex" justifyContent="space-between" alignItems="center">
+             <FormControlLabel
+                control={<Checkbox value="remember" color="primary" size="small" />}
+                label={<Typography variant="caption" color="textSecondary">Recuérdame</Typography>}
+             />
+             <Link 
+                component="button" 
+                variant="caption" 
+                onClick={() => navigate('/forgot-password')}
+                underline="hover"
+                type='button'
               >
                 ¿Olvidó su contraseña?
               </Link>
-            </Grid>
-          </Grid>
-
-          {/* 3. ENLACE: REGISTRO */}
-          <Grid container justifyContent="center" sx={{ mt: 2 }}>
-            <Grid item>
-              <Link 
-                component={RouterLink} 
-                to="/register" 
-                variant="body2" 
-                color="primary"
+          </Box>
+          
+          <Box mt={1} textAlign="center">
+             <Link 
+                component="button" 
+                variant="caption" 
+                onClick={() => navigate('/register')}
+                underline="none"
+                sx={{ fontWeight: 'medium' }}
+                type='button'
               >
                 ¿No tienes cuenta? Regístrate
               </Link>
-            </Grid>
-          </Grid>
+          </Box>
+
         </Box>
-      </Box>
-    </Container>
+      </Paper>
+
+      {/* MODAL DE CUENTA PENDIENTE DE ACTIVACIÓN */}
+      <ConfirmDialog
+        open={showInactiveDialog}
+        title="Cuenta Pendiente de Activación"
+        content="Su correo electrónico ha sido confirmado exitosamente, pero un administrador aún debe activar su cuenta para que pueda ingresar al sistema. Por favor, espere a recibir el correo de bienvenida."
+        onClose={() => setShowInactiveDialog(false)}
+        onConfirm={() => setShowInactiveDialog(false)}
+        confirmText="Entendido"
+      />
+      
+    </Box>
   );
 }
-
 export default LoginPage;

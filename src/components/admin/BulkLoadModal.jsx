@@ -1,15 +1,14 @@
 //============================================================================
-// MICRO-COMPONENTE: TABLA DE PRECIOS
+// MICRO-COMPONENTE: MODAL DE CARGA MASIVA DE PRECIOS
 //============================================================================
 /**
- * @fileoverview Tabla presentacional para listar los precios filtrados.
+ * @fileoverview Modal para la carga masiva y estructurada de una lista de precios completa.
  *
  * @description
- * Muestra las columnas: ID, Rango Etario, Precio y Acciones.
- * Formatea el precio como moneda (ARS) sin decimales.
- * Estilo unificado (encabezados azules).
+ * Este componente presenta un formulario dentro de un modal que permite al usuario
+ * seleccionar un plan y un tipo de ingreso, y luego ingresar el precio para cada
+ * uno de los rangos etarios predefinidos en el sistema.
  *
- * @param {object} props
  * @param {boolean} props.open - Visibilidad.
  * @param {function} props.onClose - Cerrar modal.
  * @param {function} props.onSave - Guardar (recibe el array de precios).
@@ -25,6 +24,40 @@ import {
 import { toast } from 'react-hot-toast';
 import { TIPOS_INGRESO, RANGOS_ETARIOS } from '../../utils/constants'; 
 
+/**
+ * Obtiene un color específico basado en el nombre de un plan.
+ * Esto simula una extensión del tema de Material-UI para colores de planes.
+ * @param {string} planName - El nombre del plan (ej: "Rubi").
+ * @returns {string} El color CSS correspondiente o el color primario por defecto.
+ */
+const getPlanColor = (planName) => {
+  if (!planName) return 'primary.main';
+
+  const normalizedPlanName = planName
+    .trim()
+    .normalize("NFD") // Separa los caracteres de sus acentos
+    .replace(/[\u0300-\u036f]/g, "") // Elimina los acentos
+    .toLowerCase();
+
+  const colorMap = { 
+    'rubi': '#E91E63', 
+    'esmeralda': '#4CAF50', 
+    'zafiro': '#2196F3', 
+    'diamante': '#90A4AE' 
+  };
+  return colorMap[normalizedPlanName] || 'primary.main';
+};
+
+/**
+ * @component BulkLoadModal
+ * @description Modal con un formulario para la carga masiva de precios por rangos etarios.
+ * @param {object} props - Propiedades del componente.
+ * @param {boolean} props.open - Controla si el modal está visible.
+ * @param {function} props.onClose - Función para cerrar el modal.
+ * @param {function} props.onSave - Función que se ejecuta al guardar, recibe un array de objetos de precio.
+ * @param {Array<object>} props.planes - Lista de planes disponibles para el selector.
+ * @returns {JSX.Element}
+ */
 function BulkLoadModal({ open, onClose, onSave, planes }) {
   
   // Estado inicial del formulario
@@ -36,20 +69,23 @@ function BulkLoadModal({ open, onClose, onSave, planes }) {
   // Estado para los precios 
   const [preciosInput, setPreciosInput] = useState({});
 
-  // Reset al abrir
+  // Efecto para resetear el estado del formulario cada vez que el modal se abre.
   useEffect(() => {
     if (open) {
       setFormData({
-        planId: planes.length > 0 ? planes[0].id : '',
+        planId: '',
         tipoIngreso: TIPOS_INGRESO.OBLIGATORIO,
       });
-      // Inicializamos los precios vacíos
       setPreciosInput({});
     }
   }, [open, planes]);
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setFormData(prev => ({ 
+      ...prev, 
+      [name]: name === 'planId' ? (value ? parseInt(value, 10) : '') : value 
+    }));
   };
 
   // Maneja el cambio de precio de un rango específico
@@ -61,12 +97,6 @@ function BulkLoadModal({ open, onClose, onSave, planes }) {
   };
 
   const handleSubmit = () => {
-    // Validaciones básicas
-    if (!formData.planId) {
-      toast.error("Seleccione un Plan.");
-      return;
-    }
-
     const pricesToLoad = [];
 
     RANGOS_ETARIOS.forEach(rango => {
@@ -78,18 +108,11 @@ function BulkLoadModal({ open, onClose, onSave, planes }) {
           plan_id: formData.planId,
           tipo_ingreso: formData.tipoIngreso,
           lista_nombre: formData.tipoIngreso, 
-          
-          // Datos del rango (vienen de constants.js)
           rango_etario: rango.label, 
           precio: parseFloat(precioStr),
         });
       }
     });
-
-    if (pricesToLoad.length === 0) {
-      toast.error("Ingrese al menos un precio para cargar.");
-      return;
-    }
 
     onSave(pricesToLoad);
   };
@@ -112,6 +135,7 @@ function BulkLoadModal({ open, onClose, onSave, planes }) {
                         label="Plan"
                         onChange={handleChange}
                     >
+                        <MenuItem value=""><em>Seleccione un Plan</em></MenuItem>
                         {planes.map(p => (
                             <MenuItem key={p.id} value={p.id}>{p.nombre}</MenuItem>
                         ))}
@@ -142,13 +166,18 @@ function BulkLoadModal({ open, onClose, onSave, planes }) {
         </Typography>
 
         {/* GENERACIÓN DINÁMICA DE INPUTS */}
-        <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: 2 }}>
-          {RANGOS_ETARIOS.map((rango) => (
-            <Paper key={rango.label} variant="outlined" sx={{ p: 2, backgroundColor: '#f9f9f9' }}>
-              <Typography variant="body2" sx={{ mb: 1, fontWeight: 'bold' }}>
-                {rango.label}
-              </Typography>
-              <TextField
+        <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 1.5 }}>
+          {RANGOS_ETARIOS.map((rango) => ( 
+            <Paper key={rango.label} elevation={2} sx={{ borderRadius: 2, overflow: 'hidden' }}>
+              {/* Encabezado de la tarjeta con color dinámico según el plan seleccionado */}
+              <Box sx={{ bgcolor: getPlanColor(planes.find(p => p.id === formData.planId)?.nombre), p: 1 }}>
+                <Typography variant="body2" sx={{ fontWeight: 'bold', color: 'primary.contrastText' }}>
+                  {rango.label}
+                </Typography>
+              </Box>
+              {/* Cuerpo de la tarjeta con el input */}
+              <Box sx={{ p: 2, bgcolor: 'background.paper' }}>
+                <TextField
                 fullWidth
                 size="small"
                 placeholder="0.00"
@@ -159,8 +188,8 @@ function BulkLoadModal({ open, onClose, onSave, planes }) {
                   startAdornment: <InputAdornment position="start">$</InputAdornment>,
                 }}
               />
-            </Paper>
-          ))}
+              </Box>
+            </Paper>))}
         </Box>
 
       </DialogContent>

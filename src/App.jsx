@@ -5,17 +5,11 @@
  * @fileoverview Componente raíz principal (<App />) de la aplicación React.
  *
  * @description
- * Este es el componente principal que se renderiza dentro de `main.jsx`.
- *
- * Su responsabilidad es ensamblar los "Proveedores" (Providers) globales
- * que dan contexto visual y de enrutamiento a toda la aplicación:
- *
- * 1. `ThemeProvider`: Envuelve la app con el tema de diseño personalizado
- * (colores, fuentes) definido en `theme.js`.
- * 2. `CssBaseline`: Aplica un reseteo de estilos CSS (normalización)
- * de Material-UI para consistencia entre navegadores.
- * 3. `AppRouter`: Renderiza el sistema de enrutamiento principal, que
- * decide qué página mostrar según la URL.
+ * Este componente es el punto de entrada visual de la aplicación. Su única
+ * responsabilidad es ensamblar los proveedores de contexto de más alto nivel,
+ * como `ThemeProvider` para el tema de Material-UI y `CssBaseline` para la
+ * normalización de estilos. Dentro de estos proveedores, renderiza el `AppRouter`,
+ * que se encarga de toda la lógica de navegación.
  */
 
 import { CssBaseline, ThemeProvider } from '@mui/material';
@@ -23,9 +17,9 @@ import sigecTheme from './theme';
 import AppRouter from './router/AppRouter';
 
 /**
- * @file App.jsx
- * @description Componente raíz de la aplicación SIGEC.
- * @returns {JSX.Element} El componente principal de la aplicación.
+ * @component App
+ * @description Componente raíz que envuelve toda la aplicación con los proveedores de tema y enrutamiento.
+ * @returns {JSX.Element}
  */
 function App() {
   return (

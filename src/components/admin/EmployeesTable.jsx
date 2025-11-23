@@ -44,6 +44,14 @@ function EmployeesTable({
   onToggleStatus
 }) {
 
+  /**
+   * Renderiza el control de estado para un empleado según su situación.
+   * - **Pendiente**: Si el empleado está inactivo y no ha confirmado su email.
+   * - **Activo**: Muestra un toggle "ON" que permite desactivarlo.
+   * - **Inactivo**: Muestra un toggle "OFF" que permite reactivarlo.
+   * @param {object} emp - El objeto del empleado.
+   * @returns {JSX.Element} Un Chip o un IconButton representando el estado.
+   */
   const renderEstado = (emp) => {
     
     // Pendiente (Recién creado, email no confirmado)
@@ -51,9 +59,9 @@ function EmployeesTable({
       return (
         <Chip 
           label="Pendiente" 
-          color="warning" // Color naranja
+          color="warning" 
           size="small" 
-          sx={{ fontWeight: 'bold' }}
+          sx={{ fontWeight: 'bold', height: '20px', fontSize: '0.75rem' }}
         />
       );
     }
@@ -61,7 +69,7 @@ function EmployeesTable({
     // Activo
     if (emp.estado === 'activo') {
       return (
-        <IconButton color="success" onClick={() => onToggleStatus(emp.legajo, 'inactivo')}>
+        <IconButton size="small" color="success" onClick={() => onToggleStatus(emp.legajo, 'inactivo')}>
           <ToggleOnIcon />
         </IconButton>
       );
@@ -69,7 +77,7 @@ function EmployeesTable({
 
     // Inactivo (Suspendido, pero ya confirmado)
     return (
-      <IconButton color="error" onClick={() => onToggleStatus(emp.legajo, 'activo')}>
+      <IconButton size="small" color="error" onClick={() => onToggleStatus(emp.legajo, 'activo')}>
         <ToggleOffIcon />
       </IconButton>
     );
@@ -78,17 +86,25 @@ function EmployeesTable({
   return (
     <Paper sx={{ width: '100%', overflow: 'hidden' }}>
       <TableContainer sx={{ maxHeight: 600, overflowX: 'auto'}}> 
-        <Table stickyHeader sx={{ tableLayout: 'fixed' }}> 
+        <Table stickyHeader size="small" sx={{ 
+          tableLayout: 'fixed',
+          '& .MuiTableCell-root': {
+            padding: '2px 8px', 
+            fontSize: '0.78rem',
+            lineHeight: '1.2',
+          },
+        }}> 
           
           <TableHead>
             <TableRow sx={{ 
               borderBottom: '2px solid', 
               borderColor: 'primary.main',
               '& .MuiTableCell-root': {
+                padding: '10px 8px', 
                 color: 'primary.main', 
                 fontWeight: 'bold', 
-                fontSize: '0.95rem', 
-                backgroundColor: 'background.paper'
+                backgroundColor: 'background.paper',
+                textAlign: 'center'
               }
             }}>
               <TableCell sx={{ width: '10%' }}>Legajo</TableCell>
@@ -105,7 +121,6 @@ function EmployeesTable({
             backgroundColor: '#FFFFFF',
             '& .MuiTableCell-root': {
               color: 'text.primary',
-              fontSize: '0.9rem'
             }
           }}>
             {employees
@@ -113,6 +128,7 @@ function EmployeesTable({
               .map((emp) => (
                 <TableRow 
                   key={emp.legajo} 
+                  sx={{ '&:hover': { backgroundColor: '#f5f5f5' } }} 
                 >
                   <TableCell>{emp.legajo}</TableCell>
                   <TableCell>{emp.nombre}</TableCell>
@@ -120,16 +136,16 @@ function EmployeesTable({
                   <TableCell sx={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {emp.email}
                   </TableCell>
-                  <TableCell>{emp.rol}</TableCell>
+                  <TableCell align="center">{emp.rol}</TableCell>
                   
-                  <TableCell>
+                  <TableCell align="center">
                     {renderEstado(emp)}
                   </TableCell>
                   
-                  <TableCell>
-                    <Box sx={{ display: 'flex', gap: 0.1 }}>
-                      <IconButton color="primary" onClick={() => onEdit(emp.legajo)}>
-                        <EditIcon />
+                  <TableCell align="center">
+                    <Box sx={{ display: 'flex', gap: 0.1, justifyContent: 'center' }}>
+                      <IconButton size="small" color="primary" onClick={() => onEdit(emp.legajo)}>
+                        <EditIcon fontSize="small" />
                       </IconButton>
                     </Box>
                   </TableCell>
@@ -140,7 +156,7 @@ function EmployeesTable({
       </TableContainer>
 
       <TablePagination
-        rowsPerPageOptions={[6, 12, 18, 24]} 
+        rowsPerPageOptions={[10, 25, 50]} 
         component="div"
         count={employees.length}
         rowsPerPage={rowsPerPage} 

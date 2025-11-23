@@ -26,19 +26,20 @@ function PlansTable({ plans, onEdit, onDelete }) {
 
   return (
     <Paper sx={{ width: '100%', overflow: 'hidden', borderRadius: 2, boxShadow: 3 }}>
-      <TableContainer sx={{ maxHeight: 600 }}> 
-        <Table stickyHeader> 
+      <TableContainer> 
+        <Table stickyHeader size="small"> 
           <TableHead>
             <TableRow sx={{ 
               '& .MuiTableCell-root': {
                 fontWeight: 'bold', 
                 backgroundColor: '#f5f5f5', 
-                color: 'primary.main'
+                color: 'primary.main',
+                fontSize: '0.8rem' 
               }
             }}>
-              <TableCell sx={{ width: '30%' }}>Nombre del Plan</TableCell>
+              <TableCell sx={{ width: '30%' }} align="center">Nombre del Plan</TableCell>
               <TableCell sx={{ width: '50%' }}>Detalles</TableCell>
-              <TableCell sx={{ width: '10%' }}>Estado</TableCell>
+              <TableCell sx={{ width: '10%' }} align="center">Estado</TableCell>
               <TableCell sx={{ width: '10%' }} align="center">Acciones</TableCell>
             </TableRow>
           </TableHead>
@@ -53,12 +54,11 @@ function PlansTable({ plans, onEdit, onDelete }) {
             ) : (
               plans.map((plan) => (
                 <TableRow hover key={plan.id}>
-                  <TableCell sx={{ fontWeight: 'medium' }}>{plan.nombre}</TableCell>
-                  <TableCell sx={{ color: 'text.secondary' }}>
-                    
+                  <TableCell sx={{ fontWeight: 'medium', fontSize: '0.875rem' }} align="center">{plan.nombre}</TableCell>
+                  <TableCell sx={{ color: 'text.secondary', fontSize: '0.875rem' }}>
                     {plan.detalles || 'Sin detalles'}
                   </TableCell>
-                  <TableCell>
+                  <TableCell align="center">
                     {plan.activo ? 
                       <Chip label="Activo" color="success" size="small" variant="outlined" /> :
                       <Chip label="Inactivo" color="default" size="small" variant="outlined" />
@@ -69,7 +69,6 @@ function PlansTable({ plans, onEdit, onDelete }) {
                       <IconButton size="small" color="primary" onClick={() => onEdit(plan)}>
                         <EditIcon fontSize="small" />
                       </IconButton>
-                      {/* Solo mostramos el botón de borrar si el plan está ACTIVO */}
                       {plan.activo === 1 && (
                         <IconButton size="small" color="error" onClick={() => onDelete(plan)}>
                           <DeleteIcon fontSize="small" />
