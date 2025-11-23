@@ -1,16 +1,61 @@
-# React + Vite
+# Proyecto SIGEC - Frontend (Portal de Asesores)
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+**Sistema de Gestión de Cotizaciones - Medicina Privada**
 
-Currently, two official plugins are available:
+Este repositorio contiene el **Frontend** de la aplicación SIGEC, una Single Page Application (SPA) desarrollada en **React (Vite)** que permite a los asesores comerciales gestionar clientes y generar cotizaciones de planes de salud de manera dinámica.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+---
 
-## React Compiler
+## 🚀 Características Principales
 
-The React Compiler is currently not compatible with SWC. See [this issue](https://github.com/vitejs/vite-plugin-react/issues/428) for tracking the progress.
+* **🔐 Autenticación Segura:** Sistema de Login y Registro integrado con JWT. Manejo de sesión y protección de rutas privadas.
+* **📊 Dashboard Administrativo:** Panel visual con métricas rápidas y accesos directos.
+* **📝 Cotizador Dinámico:** Formulario paso a paso para generar cotizaciones, calcular precios según edad/plan y descargar el PDF.
+* **🎨 UI/UX Moderna:** Diseño limpio y responsivo utilizando **Material-UI (MUI)**.
+* **📱 Totalmente Responsivo:** Adaptable a dispositivos móviles, tablets y escritorio.
+* **🔗 Conexión API:** Capa de servicios centralizada con **Axios** para la comunicación con el Backend.
 
-## Expanding the ESLint configuration
+---
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## 🛠️ Tecnologías Utilizadas
+
+* **Core:** React.js + Vite (Build tool rápido y ligero).
+* **Enrutamiento:** React Router DOM v6.
+* **Estilos y Componentes:** Material-UI (MUI) v5.
+* **Peticiones HTTP:** Axios (con interceptores para manejo de tokens).
+* **Manejo de PDF:** Integración con la generación de documentos del backend.
+
+---
+
+## ⚙️ Instalación y Configuración
+
+Sigue estos pasos para levantar el proyecto en tu entorno local.
+
+### 1. Requisitos Previos
+* Node.js (v14 o superior).
+* Tener el **Backend de SIGEC** ejecutándose localmente en el puerto `5000`.
+    * Repositorio Backend: [https://github.com/ysivira/backend-sigec](https://github.com/ysivira/backend-sigec)
+
+### 2. Clonar e Instalar
+ ```bash
+    git clone [https://github.com/ysivira/frontend-sigec](https://github.com/ysivira/frontend-sigec)
+    ```
+    cd frontend-sigec
+    
+    ```bash 
+    npm install 
+    ```
+
+    
+3. Variables de Entorno (.env)
+Es crucial configurar la URL del backend para que la aplicación funcione.
+
+Crea un archivo .env en la raíz del proyecto.
+VITE_API_URL=http://localhost:5000/api
+
+4. Ejecutar el Proyecto
+Para iniciar el servidor de desarrollo (Vite):
+
+    ```bash  
+    npm run dev  
+    ``` 
